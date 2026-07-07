@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Eye, EyeOff, HelpCircle, Mail, ChevronRight, 
-  QrCode, CreditCard, DollarSign, Wallet, TrendingUp, 
-  ArrowUpRight, Landmark, Receipt, Smartphone, ShieldAlert, Edit2
+  CreditCard, DollarSign, Wallet, TrendingUp, 
+  ArrowUpRight, Landmark, Receipt, Smartphone, ShieldAlert, Edit2,
+  ArrowUpDown, ShoppingBag, Barcode, Diamond, Coins, User, X
 } from 'lucide-react';
 import { BankUser } from '../types';
 
@@ -31,6 +32,9 @@ export default function HomeView({
 
   const [isEditingLimit, setIsEditingLimit] = useState(false);
   const [limitInput, setLimitInput] = useState(user.creditCardLimit.toString());
+
+  // Profile Modal State (Matches Image 5!)
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep inputs synced if parent changes
   useEffect(() => {
@@ -65,42 +69,42 @@ export default function HomeView({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-neutral-100 pb-10 text-neutral-800">
+    <div className="flex-1 flex flex-col bg-[#000000] text-white pb-16 relative overflow-y-auto no-scrollbar">
       
-      {/* Authentic Nubank Deep Purple Header */}
-      <div className="bg-[#830AD1] text-white px-5 pt-6 pb-6 rounded-b-[24px] shadow-sm flex flex-col gap-6">
+      {/* Top Header Section (Matches Image 3) */}
+      <div className="px-5 pt-6 pb-4 flex flex-col gap-4">
         
         {/* Top Navbar Row */}
         <div className="flex items-center justify-between">
-          {/* Profile Circle */}
+          {/* Profile Circle (Triggers profile popup matching Image 5!) */}
           <button 
-            onClick={onLogout}
-            className="w-11 h-11 rounded-full bg-white/20 border border-white/10 flex items-center justify-center font-bold text-sm text-white hover:bg-white/30 cursor-pointer transition-colors"
-            title="Trocar Usuário (CPF)"
+            onClick={() => setProfileOpen(true)}
+            className="w-10 h-10 rounded-full bg-[#1c1c1e] border border-neutral-800 flex items-center justify-center font-bold text-sm text-neutral-200 hover:bg-neutral-800 cursor-pointer transition-all duration-250 hover:scale-[1.03]"
+            title="Ver Perfil & Agência"
           >
             {getInitials(user.name)}
           </button>
           
-          {/* Action Icons */}
-          <div className="flex items-center gap-3">
+          {/* Quick Action Icons */}
+          <div className="flex items-center gap-1">
             <button 
               onClick={() => setHideBalance(!hideBalance)}
-              className="p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors"
+              className="p-2.5 rounded-full hover:bg-neutral-900 active:scale-95 transition-all"
               title={hideBalance ? "Mostrar saldo" : "Ocultar saldo"}
             >
-              {hideBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {hideBalance ? <EyeOff className="w-5 h-5 text-neutral-300" /> : <Eye className="w-5 h-5 text-neutral-300" />}
             </button>
-            <button className="p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors">
-              <HelpCircle className="w-5 h-5" />
+            <button className="p-2.5 rounded-full hover:bg-neutral-900 transition-colors">
+              <HelpCircle className="w-5 h-5 text-neutral-300" />
             </button>
-            <button className="p-2.5 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors">
-              <Mail className="w-5 h-5" />
+            <button className="p-2.5 rounded-full hover:bg-neutral-900 transition-colors">
+              <Mail className="w-5 h-5 text-neutral-300" />
             </button>
           </div>
         </div>
 
         {/* Greeting / Click-to-edit name */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           {isEditingName ? (
             <form 
               onSubmit={(e) => {
@@ -116,7 +120,7 @@ export default function HomeView({
                 type="text"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
-                className="bg-white/15 border border-white/30 text-white font-bold px-2 py-1 rounded-lg text-sm focus:outline-none focus:border-white w-full max-w-[240px]"
+                className="bg-[#1c1c1e] border border-purple-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 w-full max-w-[240px]"
                 autoFocus
                 onBlur={() => {
                   if (nameInput.trim()) {
@@ -125,39 +129,40 @@ export default function HomeView({
                   setIsEditingName(false);
                 }}
               />
-              <button type="submit" className="bg-white text-[#830AD1] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase">OK</button>
+              <button type="submit" className="bg-[#830AD1] text-white px-3 py-1.5 rounded-xl text-xs font-bold uppercase">OK</button>
             </form>
           ) : (
             <div 
               onClick={() => setIsEditingName(true)}
-              className="group cursor-pointer flex items-center gap-1.5 hover:bg-white/10 px-2 py-1 -ml-2 rounded-lg transition-all"
+              className="group cursor-pointer flex items-center gap-1.5 hover:bg-neutral-900 py-1 px-1.5 -ml-1.5 rounded-xl transition-all"
               title="Clique para editar o Nome"
             >
-              <h2 className="text-lg font-bold font-display tracking-tight text-white flex items-center gap-1.5">
+              <h2 className="text-base font-bold text-white flex items-center gap-1.5">
                 Olá, {user.name}
-                <Edit2 className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+                <Edit2 className="w-3.5 h-3.5 opacity-30 group-hover:opacity-100 transition-opacity text-neutral-400" />
               </h2>
             </div>
           )}
         </div>
       </div>
 
-      {/* Main Account Balance Card */}
-      <div className="px-4 -mt-3.5 z-10">
+      {/* Account Section - click to edit balance directly inside layout (Matches Image 3) */}
+      <div className="px-5 mt-2">
         <div 
           onClick={() => onNavigate('account')}
-          className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-200/50 hover:border-neutral-300 transition-all cursor-pointer flex flex-col gap-2 group active:scale-[0.99]"
+          className="cursor-pointer group flex flex-col gap-1.5 select-none active:opacity-90"
         >
           <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-neutral-800 font-display">Conta</span>
-            <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" />
+            <span className="text-base font-bold text-white tracking-tight">Conta</span>
+            <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
           </div>
 
-          <div className="flex flex-col gap-1 mt-1">
+          {/* Large balance display */}
+          <div className="flex flex-col gap-0.5">
             {isEditingBalance ? (
               <div 
                 onClick={(e) => e.stopPropagation()} 
-                className="flex flex-col gap-1 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200"
+                className="flex flex-col gap-1.5 bg-[#1c1c1e] p-3 rounded-2xl border border-neutral-800"
               >
                 <span className="text-[10px] text-neutral-400 font-bold uppercase">Editar Saldo da Conta</span>
                 <form 
@@ -169,15 +174,15 @@ export default function HomeView({
                     }
                     setIsEditingBalance(false);
                   }}
-                  className="flex items-center gap-1.5"
+                  className="flex items-center gap-2"
                 >
-                  <span className="text-lg font-bold text-neutral-400">R$</span>
+                  <span className="text-base font-bold text-neutral-400">R$</span>
                   <input 
                     type="number"
                     step="any"
                     value={balanceInput}
                     onChange={(e) => setBalanceInput(e.target.value)}
-                    className="bg-white border border-neutral-300 text-neutral-900 font-extrabold px-2.5 py-1.5 rounded-lg text-base focus:outline-none focus:border-[#830AD1] w-full"
+                    className="bg-black border border-purple-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm focus:outline-none w-full"
                     autoFocus
                     onBlur={() => {
                       const newBal = parseFloat(balanceInput);
@@ -187,7 +192,7 @@ export default function HomeView({
                       setIsEditingBalance(false);
                     }}
                   />
-                  <button type="submit" className="bg-[#830AD1] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase">OK</button>
+                  <button type="submit" className="bg-[#830AD1] text-white px-3 py-1.5 rounded-xl text-xs font-bold uppercase">OK</button>
                 </form>
               </div>
             ) : (
@@ -196,15 +201,12 @@ export default function HomeView({
                   e.stopPropagation();
                   setIsEditingBalance(true);
                 }}
-                className="group/bal flex items-center justify-between hover:bg-neutral-50 -mx-2 px-2 py-1 rounded-xl transition-all"
+                className="group/bal flex items-center justify-between hover:bg-neutral-900 py-1.5 px-2 -ml-2 rounded-2xl transition-all"
                 title="Clique no saldo para editar"
               >
-                <span className="text-2xl font-extrabold text-neutral-900 tracking-tight font-display flex items-center gap-1.5">
+                <span className="text-[26px] font-bold text-white tracking-tight font-display flex items-center gap-2">
                   {formatValue(user.balance)}
-                  <Edit2 className="w-4 h-4 opacity-0 group-hover/bal:opacity-50 transition-opacity text-neutral-400" />
-                </span>
-                <span className="text-[10px] text-[#830AD1] font-bold uppercase tracking-wider opacity-0 group-hover/bal:opacity-100 transition-opacity">
-                  ✏️ Editar Saldo
+                  <Edit2 className="w-4 h-4 opacity-0 group-hover/bal:opacity-60 transition-opacity text-neutral-400" />
                 </span>
               </div>
             )}
@@ -212,64 +214,19 @@ export default function HomeView({
         </div>
       </div>
 
-      {/* Dados do Usuário & Senhas Card */}
-      <div className="mt-4 px-4">
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-200/50 flex flex-col gap-3">
-          <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#830AD1]/10 flex items-center justify-center text-[#830AD1]">
-                <ShieldAlert className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider font-display">Identificação & Senhas</span>
-            </div>
-            {onLogout && (
-              <button 
-                onClick={onLogout}
-                className="text-[10px] text-[#830AD1] hover:underline font-bold bg-purple-50 hover:bg-purple-100/50 px-2.5 py-1 rounded-full transition-all uppercase tracking-wide"
-              >
-                Trocar de Conta
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-xs text-neutral-600">
-            <div className="bg-neutral-50 p-2 rounded-xl flex flex-col">
-              <span className="text-[10px] text-neutral-400 font-bold uppercase">Agência / Conta</span>
-              <span className="font-bold text-neutral-800 font-mono">Ag. {user.agency} • Cc {user.accountNumber}</span>
-            </div>
-            <div className="bg-neutral-50 p-2 rounded-xl flex flex-col">
-              <span className="text-[10px] text-neutral-400 font-bold uppercase">CPF Cadastrado</span>
-              <span className="font-bold text-neutral-800 font-mono">{user.cpf}</span>
-            </div>
-            <div className="bg-[#830AD1]/5 p-2 rounded-xl flex flex-col border border-[#830AD1]/10">
-              <span className="text-[10px] text-[#830AD1] font-bold uppercase flex items-center gap-1">
-                🔑 Senha do App
-              </span>
-              <span className="font-extrabold text-[#830AD1] font-mono text-sm mt-0.5">{user.password || '1105'}</span>
-            </div>
-            <div className="bg-emerald-50/50 p-2 rounded-xl flex flex-col border border-emerald-500/10">
-              <span className="text-[10px] text-emerald-700 font-bold uppercase flex items-center gap-1">
-                🔒 Senha Pix (Transação)
-              </span>
-              <span className="font-extrabold text-emerald-800 font-mono text-sm mt-0.5">{user.transactionPassword || '5424'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Horizontal Actions Carousel (Scrollable) */}
-      <div className="mt-5 px-4">
-        <div className="flex items-start gap-3 overflow-x-auto no-scrollbar py-2 -mx-4 px-4 scroll-smooth">
+      {/* Quick Action Horizontal Scrollable Buttons Row (Matches Image 3 circular buttons!) */}
+      <div className="mt-6">
+        <div className="flex items-start gap-4 overflow-x-auto no-scrollbar py-2 px-5">
           
-          {/* Action: Pix */}
+          {/* Action: Área Pix */}
           <button 
             onClick={() => onNavigate('pix')}
-            className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none min-w-[76px]"
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
           >
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 group-hover:bg-neutral-200 flex items-center justify-center text-neutral-950 active:scale-95 transition-all">
-              <QrCode className="w-5 h-5" />
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
+              <Diamond className="w-5 h-5" />
             </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
               Área Pix
             </span>
           </button>
@@ -277,94 +234,132 @@ export default function HomeView({
           {/* Action: Pagar */}
           <button 
             onClick={() => onNavigate('card')}
-            className="flex flex-col items-center gap-2 group cursor-pointer min-w-[76px]"
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
           >
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 group-hover:bg-neutral-200 flex items-center justify-center text-neutral-950 active:scale-95 transition-all">
-              <Receipt className="w-5 h-5" />
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
+              <Barcode className="w-5 h-5" />
             </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
               Pagar
+            </span>
+          </button>
+
+          {/* Action: Pegar Emprestado (With purple capsule badge R$50.000 underneath, matches Image 3 exactly!) */}
+          <button 
+            onClick={() => {
+              alert('Simulação de empréstimo disponível. O limite atual pré-aprovado é de R$ 50.000,00.');
+            }}
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[76px] relative"
+          >
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65 relative">
+              <Coins className="w-5 h-5" />
+              {/* Overlapping purple badge under the icon block */}
+              <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 bg-[#830AD1] text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-md whitespace-nowrap border border-black uppercase tracking-wide">
+                R$50.000
+              </div>
+            </div>
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3 mt-1">
+              Pegar emprestado
             </span>
           </button>
 
           {/* Action: Transferir */}
           <button 
             onClick={() => onNavigate('pix')}
-            className="flex flex-col items-center gap-2 group cursor-pointer min-w-[76px]"
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
           >
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 group-hover:bg-neutral-200 flex items-center justify-center text-neutral-950 active:scale-95 transition-all">
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
               <ArrowUpRight className="w-5 h-5" />
             </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
               Transferir
             </span>
           </button>
 
-          {/* Action: Meus Cartões */}
+          {/* Action: Recarga celular */}
           <button 
-            onClick={() => onNavigate('card')}
-            className="flex flex-col items-center gap-2 group cursor-pointer min-w-[76px]"
+            onClick={() => alert('Simulador de recarga de celular ativo.')}
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
           >
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 group-hover:bg-neutral-200 flex items-center justify-center text-neutral-950 active:scale-95 transition-all">
-              <CreditCard className="w-5 h-5" />
-            </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
-              Meus cartões
-            </span>
-          </button>
-
-          {/* Action: Recarga */}
-          <button className="flex flex-col items-center gap-2 group cursor-pointer opacity-70 min-w-[76px]">
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 flex items-center justify-center text-neutral-950">
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
               <Smartphone className="w-5 h-5" />
             </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
-              Recarga
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
+              Recarga celular
             </span>
           </button>
 
           {/* Action: Depositar */}
           <button 
             onClick={() => onNavigate('account')}
-            className="flex flex-col items-center gap-2 group cursor-pointer min-w-[76px]"
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
           >
-            <div className="w-14 h-14 rounded-full bg-neutral-200/80 group-hover:bg-neutral-200 flex items-center justify-center text-[#830AD1] active:scale-95 transition-all">
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
               <Landmark className="w-5 h-5" />
             </div>
-            <span className="text-[12px] font-bold text-neutral-700 text-center tracking-tight leading-3">
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
               Depositar
             </span>
           </button>
         </div>
       </div>
 
-      {/* Meus Cartões Pill */}
-      <div className="mt-5 px-4">
+      {/* Meus Cartões Button (Matches Image 3) */}
+      <div className="mt-5 px-5">
         <button 
           onClick={() => onNavigate('card')}
-          className="w-full bg-neutral-200/70 hover:bg-neutral-200 active:scale-[0.99] transition-all rounded-xl py-3 px-4 flex items-center gap-3 text-left border border-neutral-300/30"
+          className="w-full bg-[#1c1c1e] hover:bg-neutral-900 active:scale-[0.99] transition-all rounded-2xl py-4 px-4.5 flex items-center gap-3.5 text-left border border-neutral-800/40"
         >
-          <CreditCard className="w-5 h-5 text-neutral-700" />
-          <span className="text-sm font-bold text-neutral-800 tracking-tight">Meus cartões</span>
+          <CreditCard className="w-5 h-5 text-neutral-200" />
+          <span className="text-sm font-bold text-white tracking-tight">Meus cartões</span>
         </button>
       </div>
 
-      {/* Credit Card Card */}
-      <div className="mt-4 px-4">
+      {/* Horizontal Scrollable Promo / Info Carousel (Matches Image 3 cards!) */}
+      <div className="mt-5">
+        <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 px-5">
+          {/* Card 1 */}
+          <div className="bg-[#1c1c1e] rounded-2xl p-4.5 min-w-[250px] max-w-[250px] flex flex-col justify-between shrink-0 border border-neutral-800/30 text-xs text-neutral-200 leading-normal">
+            <p>
+              <span className="text-[#830AD1] font-bold">Pix no Crédito:</span> transfira sem usar o saldo da conta.
+            </p>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-[#1c1c1e] rounded-2xl p-4.5 min-w-[250px] max-w-[250px] flex flex-col justify-between shrink-0 border border-neutral-800/30 text-xs text-neutral-200 leading-normal">
+            <p>
+              Chegou a hora de investir com o seu <span className="text-emerald-400 font-bold">Rendimento Nu</span> garantido.
+            </p>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-[#1c1c1e] rounded-2xl p-4.5 min-w-[250px] max-w-[250px] flex flex-col justify-between shrink-0 border border-neutral-800/30 text-xs text-neutral-200 leading-normal">
+            <p>
+              Ative a função <span className="text-purple-400 font-bold">Débito Automático</span> e simplifique seu pagamento.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-neutral-900 mt-6 mx-5"></div>
+
+      {/* Credit Card Card Section (Matches Image 3) */}
+      <div className="mt-5 px-5">
         <div 
           onClick={() => onNavigate('card')}
-          className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-200/50 hover:border-neutral-300 transition-all cursor-pointer flex flex-col gap-2 group active:scale-[0.99]"
+          className="cursor-pointer flex flex-col gap-1 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-neutral-800 font-display">Cartão de crédito</span>
-            <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" />
+            <span className="text-base font-bold text-white">Cartão de crédito</span>
+            <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:translate-x-0.5 transition-transform" />
           </div>
           
           <div className="flex flex-col gap-1.5 mt-1">
-            <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Fatura atual (Toque para editar)</span>
+            <span className="text-xs text-neutral-400 font-semibold uppercase tracking-wider">Fatura atual (Toque para editar)</span>
             
             {isEditingInvoice ? (
-              <div onClick={(e) => e.stopPropagation()} className="bg-neutral-50 p-2.5 rounded-xl border border-neutral-200 mb-2">
+              <div onClick={(e) => e.stopPropagation()} className="bg-[#1c1c1e] p-3 rounded-2xl border border-neutral-800 mb-2">
                 <form 
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -382,7 +377,7 @@ export default function HomeView({
                     step="any"
                     value={invoiceInput}
                     onChange={(e) => setInvoiceInput(e.target.value)}
-                    className="bg-white border border-neutral-300 text-neutral-850 font-bold px-2.5 py-1.5 rounded-lg text-sm w-full"
+                    className="bg-black border border-purple-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-sm w-full"
                     autoFocus
                     onBlur={() => {
                       const newInvoice = parseFloat(invoiceInput);
@@ -392,28 +387,25 @@ export default function HomeView({
                       setIsEditingInvoice(false);
                     }}
                   />
-                  <button type="submit" className="bg-[#830AD1] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase">OK</button>
+                  <button type="submit" className="bg-[#830AD1] text-white px-3 py-1.5 rounded-xl text-xs font-bold uppercase">OK</button>
                 </form>
               </div>
             ) : (
               <div 
                 onClick={(e) => { e.stopPropagation(); setIsEditingInvoice(true); }}
-                className="group/inv flex items-center justify-between hover:bg-neutral-50 -mx-1 px-1 py-0.5 rounded transition-all w-full"
+                className="group/inv flex items-center justify-between hover:bg-neutral-900 -mx-1.5 px-1.5 py-1 rounded-xl transition-all w-full"
               >
-                <span className="text-xl font-extrabold text-[#009B9E] font-display flex items-center gap-1">
+                <span className="text-xl font-bold text-white font-display flex items-center gap-1.5">
                   {formatValue(user.creditCardInvoice)}
-                  <Edit2 className="w-3.5 h-3.5 opacity-0 group-hover/inv:opacity-50 transition-opacity text-[#009B9E]" />
-                </span>
-                <span className="text-[10px] text-[#009B9E] font-bold uppercase tracking-wider opacity-0 group-hover/inv:opacity-100 transition-opacity">
-                  ✏️ Editar Fatura
+                  <Edit2 className="w-3.5 h-3.5 opacity-0 group-hover/inv:opacity-60 transition-opacity text-neutral-400" />
                 </span>
               </div>
             )}
 
-            <div className="text-[12px] text-neutral-500 font-medium flex items-center gap-1.5 flex-wrap">
+            <div className="text-[12px] text-neutral-400 font-medium flex items-center gap-1.5 flex-wrap">
               <span>Limite disponível de</span>
               {isEditingLimit ? (
-                <div onClick={(e) => e.stopPropagation()} className="inline-block bg-neutral-50 p-1 rounded border border-neutral-200">
+                <div onClick={(e) => e.stopPropagation()} className="inline-block bg-[#1c1c1e] p-1 rounded-xl border border-neutral-800">
                   <form 
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -429,7 +421,7 @@ export default function HomeView({
                       type="number"
                       value={limitInput}
                       onChange={(e) => setLimitInput(e.target.value)}
-                      className="bg-white border border-neutral-300 text-neutral-800 font-bold px-1.5 py-0.5 rounded text-xs w-24"
+                      className="bg-black border border-purple-500 text-white font-bold px-2 py-1 rounded-lg text-xs w-24"
                       autoFocus
                       onBlur={() => {
                         const newLim = parseFloat(limitInput);
@@ -444,11 +436,11 @@ export default function HomeView({
               ) : (
                 <span 
                   onClick={(e) => { e.stopPropagation(); setIsEditingLimit(true); }}
-                  className="font-bold text-neutral-800 hover:bg-neutral-100 px-1 py-0.5 rounded cursor-pointer transition-all flex items-center gap-1"
+                  className="font-bold text-neutral-200 hover:bg-neutral-900 px-1.5 py-0.5 rounded-lg cursor-pointer transition-all flex items-center gap-1"
                   title="Clique para editar limite"
                 >
                   {formatValue(user.creditCardLimit)}
-                  <Edit2 className="w-3 h-3 opacity-40" />
+                  <Edit2 className="w-3 h-3 opacity-40 text-neutral-400" />
                 </span>
               )}
             </div>
@@ -456,40 +448,194 @@ export default function HomeView({
         </div>
       </div>
 
-      {/* Personal Finance / Acompanhe seu dinheiro Card */}
-      <div className="mt-4 px-4 flex flex-col gap-3">
-        <span className="text-base font-bold text-neutral-800 px-1 font-display">Acompanhe seu dinheiro</span>
-        
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-200/50 flex flex-col gap-4">
-          {/* Caixinhas */}
-          <div className="flex items-center justify-between hover:bg-neutral-50 p-1.5 rounded-xl cursor-pointer transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-[#830AD1]">
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-neutral-800">Caixinhas</span>
-                <span className="text-xs text-neutral-500">Organize suas metas financeiras</span>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-purple-700 bg-purple-100/50 px-2.5 py-1 rounded-full">R$ 100,00</span>
-          </div>
+      {/* Divider */}
+      <div className="border-t border-neutral-900 mt-5 mx-5"></div>
 
-          {/* Investimentos */}
-          <div className="flex items-center justify-between hover:bg-neutral-50 p-1.5 rounded-xl cursor-pointer transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-neutral-800">Investimentos</span>
-                <span className="text-xs text-neutral-500">Seu dinheiro rendendo mais</span>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-100/50 px-2.5 py-1 rounded-full">R$ 317,94</span>
+      {/* Empréstimo Card Section (Matches Image 3) */}
+      <div className="mt-5 px-5">
+        <div className="flex flex-col gap-1 group">
+          <div className="flex items-center justify-between">
+            <span className="text-base font-bold text-white">Empréstimo</span>
+            <ChevronRight className="w-5 h-5 text-neutral-500 transition-transform" />
+          </div>
+          
+          <div className="flex flex-col gap-0.5 mt-1">
+            <span className="text-xs text-neutral-400 font-semibold uppercase tracking-wider">Valor disponível de até</span>
+            <span className="text-sm font-bold text-white tracking-tight">
+              {formatValue(50000.00)}
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Divider */}
+      <div className="border-t border-neutral-900 mt-5 mx-5"></div>
+
+      {/* Personal Finance / Acompanhe seu dinheiro Card */}
+      <div className="mt-5 px-5 flex flex-col gap-3">
+        <span className="text-sm font-bold text-neutral-400 uppercase tracking-wider">Acompanhe seu dinheiro</span>
+        
+        <div className="bg-[#1c1c1e] rounded-2xl p-4 border border-neutral-800/40 flex flex-col gap-4">
+          {/* Caixinhas */}
+          <div className="flex items-center justify-between hover:bg-neutral-900 p-1.5 rounded-xl cursor-pointer transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-purple-950/40 border border-purple-900/30 flex items-center justify-center text-[#830AD1]">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">Caixinhas</span>
+                <span className="text-xs text-neutral-400">Organize suas metas financeiras</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-purple-300 bg-[#830AD1]/15 border border-[#830AD1]/10 px-2.5 py-1 rounded-full">R$ 100,00</span>
+          </div>
+
+          {/* Investimentos */}
+          <div className="flex items-center justify-between hover:bg-neutral-900 p-1.5 rounded-xl cursor-pointer transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-950/40 border border-emerald-900/30 flex items-center justify-center text-emerald-400">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">Investimentos</span>
+                <span className="text-xs text-neutral-400">Seu dinheiro rendendo mais</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-emerald-300 bg-emerald-950/35 border border-emerald-900/20 px-2.5 py-1 rounded-full">R$ 317,94</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Pill Nav Bar & Assistente payment at the bottom (Matches Image 3 layout!) */}
+      <div className="mt-8 px-5 w-full flex flex-col items-center gap-4">
+        {/* Floating Capsule Controller Bar */}
+        <div className="bg-[#1c1c1e] border border-neutral-800 shadow-xl rounded-full py-2 px-5 flex items-center justify-between w-full max-w-[280px] z-20">
+          {/* Arrow up/down purple circle */}
+          <button 
+            onClick={() => onNavigate('pix')}
+            className="w-10 h-10 rounded-full bg-[#830AD1] hover:bg-[#7209B7] flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer"
+            title="Transferências"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+          </button>
+          
+          {/* Dollar button */}
+          <button 
+            onClick={() => onNavigate('account')}
+            className="p-2.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            title="Conta Extrato"
+          >
+            <DollarSign className="w-5 h-5" />
+          </button>
+
+          {/* Gift/Shop button */}
+          <button 
+            onClick={() => alert('Parcerias e Shopping Nubank.')}
+            className="p-2.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            title="Shopping Nu"
+          >
+            <ShoppingBag className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Assistente de Pagamentos row */}
+        <div className="w-full bg-[#1c1c1e] rounded-2xl p-4 flex items-center justify-between border border-neutral-800/40 select-none">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-purple-400" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-white">Assistente de pagamentos</span>
+              <span className="text-[10px] text-neutral-400">Contas agendadas e automáticas</span>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold bg-[#830AD1] text-white px-2 py-0.5 rounded-md uppercase tracking-wider">Novo</span>
+        </div>
+      </div>
+
+      {/* PROFILE SIDE-SHEET DIALOG MODAL (Matches Image 5 exactly!) */}
+      {profileOpen && (
+        <div className="absolute inset-0 bg-black/75 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#1c1c1e] border border-neutral-800 rounded-3xl w-full max-w-[360px] overflow-hidden shadow-2xl flex flex-col p-5 select-none animate-scale-up">
+            
+            {/* Top row with Close button */}
+            <div className="flex items-center justify-between mb-4">
+              <button 
+                onClick={() => setProfileOpen(false)}
+                className="p-1 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <span className="text-[10px] font-extrabold tracking-widest uppercase text-neutral-500">Perfil do Cliente</span>
+            </div>
+
+            {/* Profile Avatar & Name */}
+            <div className="flex flex-col items-center text-center gap-3 py-4 border-b border-neutral-800/65">
+              <div className="w-16 h-16 rounded-full bg-[#830AD1] flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-[#830AD1]/15">
+                <User className="w-8 h-8" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">{user.name.toUpperCase()}</h3>
+            </div>
+
+            {/* Red Box Section (Agência / Conta matching Image 5 outline highlighted box exactly!) */}
+            <div className="my-5 p-3.5 rounded-xl border-2 border-purple-500 bg-purple-950/20 flex flex-col gap-1.5 text-xs text-left">
+              <div className="flex items-center justify-between text-[11px] font-bold text-neutral-300">
+                <span>Agência {user.agency} • Conta {user.accountNumber}</span>
+              </div>
+              <p className="text-[11px] text-neutral-400 leading-normal">
+                Banco 0260 - Nu Pagamentos S.A. - Instituição de Pagamento
+              </p>
+            </div>
+
+            {/* Navigation Options List */}
+            <div className="flex flex-col divide-y divide-neutral-800/50 mb-3">
+              <button 
+                onClick={() => { setProfileOpen(false); alert('Central de ajuda NuConta.'); }}
+                className="py-3 px-1 flex items-center justify-between text-xs font-bold text-neutral-200 hover:text-white group text-left"
+              >
+                <span>Me ajuda</span>
+                <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              <button 
+                onClick={() => { setProfileOpen(false); setIsEditingName(true); }}
+                className="py-3 px-1 flex items-center justify-between text-xs font-bold text-neutral-200 hover:text-white group text-left"
+              >
+                <span>Meus Dados (Editar Nome)</span>
+                <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              <button 
+                onClick={() => { setProfileOpen(false); alert('Opções do aplicativo.'); }}
+                className="py-3 px-1 flex items-center justify-between text-xs font-bold text-neutral-200 hover:text-white group text-left"
+              >
+                <span>Configurar app</span>
+                <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              <button 
+                onClick={() => { setProfileOpen(false); alert('Segurança e proteção de dados.'); }}
+                className="py-3 px-1 flex items-center justify-between text-xs font-bold text-neutral-200 hover:text-white group text-left"
+              >
+                <span>Segurança</span>
+                <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+
+            {/* Logout button */}
+            {onLogout && (
+              <button 
+                onClick={() => {
+                  setProfileOpen(false);
+                  onLogout();
+                }}
+                className="w-full mt-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
+              >
+                Sair do aplicativo
+              </button>
+            )}
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

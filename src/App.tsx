@@ -157,7 +157,7 @@ const INITIAL_USERS: BankUser[] = [
     cpf: '110.542.545-24',
     agency: '0001',
     accountNumber: '11054254-5',
-    bankName: 'Banco do Brasil S.A.',
+    bankName: 'NU PAGAMENTOS - IP',
     balance: 15420.00,
     creditCardInvoice: 1105.42,
     creditCardLimit: 12000.00,
@@ -366,32 +366,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col font-sans select-none antialiased justify-between">
+    <div className="min-h-screen bg-neutral-100 flex flex-col font-sans select-none antialiased justify-center">
       
-      {/* Top Banner Branding Header */}
-      <header className="bg-white border-b border-neutral-200/80 px-6 py-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-[#830AD1] flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-[#830AD1]/20">
-            nu
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-sm font-extrabold text-neutral-900 tracking-tight font-display">Nubank</h1>
-            <span className="text-[10px] text-[#830AD1] font-bold tracking-wide uppercase">Aplicativo Oficial</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isAuthenticated && (
-            <button
-              onClick={() => setIsAuthenticated(false)}
-              className="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 font-extrabold px-3.5 py-1.5 rounded-xl transition-all uppercase tracking-wider"
-            >
-              Sair da Conta
-            </button>
-          )}
-        </div>
-      </header>
-
       {/* Main Responsive Full App Workspace */}
       <main className="flex-1 w-full max-w-lg lg:max-w-6xl mx-auto p-0 sm:py-6 sm:px-4 flex flex-col lg:flex-row items-stretch justify-center gap-6">
         
@@ -406,7 +382,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col relative bg-neutral-50">
+          <div className="flex-1 flex flex-col relative bg-neutral-50 overflow-y-auto no-scrollbar">
             {/* If user is not logged in / identified, show the interactive identification portal */}
             {!isAuthenticated ? (
               <LoginView

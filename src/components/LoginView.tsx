@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, UserCheck, Key, Plus, Landmark, Eye, EyeOff, Sparkles, HelpCircle } from 'lucide-react';
+import { ArrowRight, ChevronDown, UserCheck, Key, ShieldCheck, Landmark, Plus, HelpCircle, Sparkles } from 'lucide-react';
 import { BankUser } from '../types';
 
 interface LoginViewProps {
@@ -9,6 +9,7 @@ interface LoginViewProps {
 }
 
 export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUser }: LoginViewProps) {
+  const [showSplash, setShowSplash] = useState(true);
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,9 +21,25 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
   const [newName, setNewName] = useState('');
   const [newAgency, setNewAgency] = useState('0001');
   const [newAccount, setNewAccount] = useState('');
-  const [newBalance, setNewBalance] = useState('5000.00');
+  const [newBalance, setNewBalance] = useState('1500.00');
   const [newPassword, setNewPassword] = useState('');
   const [newTxPassword, setNewTxPassword] = useState('');
+
+  // Recovery states
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [recoveryPhone, setRecoveryPhone] = useState('');
+  const [recoveryStep, setRecoveryStep] = useState<'phone' | 'sending' | 'code' | 'display'>('phone');
+  const [sentCode, setSentCode] = useState('');
+  const [enteredCode, setEnteredCode] = useState('');
+  const [recoveryPhoneError, setRecoveryPhoneError] = useState('');
+  const [recoveryCodeError, setRecoveryCodeError] = useState('');
+
+  const formatPhone = (val: string) => {
+    const raw = val.replace(/\D/g, '');
+    if (raw.length <= 2) return raw;
+    if (raw.length <= 7) return `(${raw.slice(0, 2)}) ${raw.slice(2)}`;
+    return `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7, 11)}`;
+  };
 
   // Auto-format CPF (111.222.333-44)
   const formatCpf = (value: string) => {
@@ -45,16 +62,14 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
     if (found) {
       setMatchedUser(found);
       setIsRegisterMode(false);
-      // Auto pre-fill some registration fields if they switch back and forth
     } else {
       setMatchedUser(null);
     }
   }, [cpf, usersDatabase]);
 
-  // Pre-fill fields with realistic defaults for registration
+  // Pre-fill realistic defaults for registration if user is creating a new one
   useEffect(() => {
     if (cpf.length === 14 && !matchedUser && !isRegisterMode) {
-      // Suggest registration
       const randomAcc = Math.floor(10000000 + Math.random() * 90000000) + '-' + Math.floor(Math.random() * 9);
       setNewAccount(randomAcc);
       setNewPassword(Math.floor(1000 + Math.random() * 9000).toString());
@@ -69,7 +84,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
     if (password === matchedUser.password) {
       onLoginSuccess(matchedUser);
     } else {
-      alert('Senha incorreta! Para fins de teste, use a senha informada no painel abaixo.');
+      alert('Senha incorreta! Para fins de teste, use a senha informada no painel ou clique em "Acesso Direto".');
     }
   };
 
@@ -87,8 +102,8 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
       accountNumber: newAccount || '1234567-8',
       bankName: 'Nu Pagamentos S.A.',
       balance: parseFloat(newBalance) || 0,
-      creditCardInvoice: 0,
-      creditCardLimit: 5000,
+      creditCardInvoice: 16.44, // Default realistic invoice matching the mockup
+      creditCardLimit: 983.56,  // Default limit
       password: newPassword || '1234',
       transactionPassword: newTxPassword || '1234'
     };
@@ -97,140 +112,421 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
     onLoginSuccess(newUser);
   };
 
-  const handleAutoFillCpf = (targetCpf: string) => {
+  const handleAutoFillCpf = (targetCpf: string, targetPass?: string) => {
     setCpf(targetCpf);
+    if (targetPass) {
+      setPassword(targetPass);
+    }
+    const found = usersDatabase.find(u => u.cpf === targetCpf);
+    if (found) {
+      setMatchedUser(found);
+    }
   };
 
-  return (
-    <div className="flex-1 flex flex-col bg-white text-neutral-800 p-6 min-h-[650px] justify-between">
-      
-      {/* Top logo & info */}
-      <div className="flex flex-col items-center text-center pt-8 gap-3">
-        <div className="w-14 h-14 rounded-full bg-[#830AD1] flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-[#830AD1]/20">
-          nu
-        </div>
-        <div className="flex flex-col gap-1 mt-2">
-          <h2 className="text-xl font-extrabold text-neutral-900 tracking-tight font-display">
-            Acesse sua conta Nu
-          </h2>
-          <p className="text-xs text-neutral-500 font-medium max-w-[280px] mx-auto">
-            Digite seu CPF para acessar sua conta oficial do Nubank.
-          </p>
-        </div>
-      </div>
+  // Eyelashes Custom Icons (Matching the eyelash image 2 exactly!)
+  const renderEyelashIcon = () => {
+    if (!showPassword) {
+      // Closed lashes
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="text-neutral-500">
+          <path d="M3 10a13.4 13.4 0 0 0 18 0" />
+          <path d="m5 11-1.5 2.5" />
+          <path d="m19 11 1.5 2.5" />
+          <path d="m9 14.5-1 3" />
+          <path d="m15 14.5 1 3" />
+          <path d="m12 15.5v3.5" />
+        </svg>
+      );
+    } else {
+      // Open eye with eyelashes
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="text-[#830AD1]">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
+    }
+  };
 
-      {/* Main Login / Search Form */}
-      <div className="my-6 flex-1 flex flex-col justify-center max-w-[340px] w-full mx-auto">
-        {!isRegisterMode ? (
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            
-            {/* CPF Field */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                CPF do Titular
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  maxLength={14}
-                  placeholder="000.000.000-00"
-                  value={cpf}
-                  onChange={handleCpfChange}
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
-                />
-              </div>
+  // Render Onboarding Splash Screen (Image 1)
+  if (showSplash) {
+    return (
+      <div className="flex-1 flex flex-col bg-white text-neutral-900 justify-between p-6 select-none animate-fade-in relative overflow-hidden min-h-[660px]">
+        {/* Top bar with logo and country selector */}
+        <div className="flex items-center justify-between w-full pt-4">
+          <div className="text-[#830AD1] font-extrabold text-3xl font-display">
+            nu
+          </div>
+          <button className="flex items-center gap-1 bg-neutral-100 text-neutral-800 text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-neutral-200 transition-colors">
+            Brasil <ChevronDown className="w-3.5 h-3.5 text-neutral-600" />
+          </button>
+        </div>
+
+        {/* Diagonal Cards Fan Mockup - matching Image 1 exactly! */}
+        <div className="relative w-full h-[280px] flex items-center justify-center my-6">
+          <div className="relative w-full max-w-[260px] h-full">
+            {/* Bottom Card - Silver/Grey Business Card */}
+            <div className="absolute top-[110px] left-[55px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-300 shadow-[2px_10px_20px_rgba(0,0,0,0.1)] border border-neutral-100/30 transform rotate-[18deg] translate-x-12 translate-y-6 flex flex-col justify-between p-3.5">
+              <span className="text-[#830AD1] font-extrabold text-lg font-display">nu</span>
+              <span className="text-[#830AD1] font-bold text-[10px] self-end uppercase tracking-wider font-display">business</span>
             </div>
 
-            {/* If user is IDENTIFIED by CPF */}
-            {matchedUser && (
-              <div className="bg-[#830AD1]/5 border border-[#830AD1]/15 rounded-2xl p-4 animate-scale-up flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#830AD1]/10 flex items-center justify-center text-[#830AD1]">
-                    <UserCheck className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-[#830AD1] uppercase tracking-wider">Conta Localizada!</span>
-                    <span className="text-sm font-extrabold text-neutral-900 leading-tight">
-                      {matchedUser.name}
-                    </span>
-                  </div>
-                </div>
+            {/* Middle Card - Medium Purple */}
+            <div className="absolute top-[50px] left-[25px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-[#8d3bc4] to-[#6d13a6] shadow-[2px_8px_18px_rgba(0,0,0,0.15)] transform rotate-[1deg] translate-x-4 translate-y-3 flex flex-col justify-between p-3.5">
+              <span className="text-white font-extrabold text-lg font-display">nu</span>
+            </div>
 
-                {/* Account details and Password (Onde fica conta e senha desse usuário) */}
-                <div className="border-t border-neutral-200/50 pt-2.5 flex flex-col gap-1.5 text-xs text-neutral-600">
-                  <div className="flex justify-between items-center bg-white/60 p-1.5 rounded-lg border border-neutral-100">
-                    <span className="font-semibold text-neutral-500">Agência e Conta:</span>
-                    <span className="font-bold text-neutral-800">
-                      Ag. {matchedUser.agency} • Cc {matchedUser.accountNumber}
-                    </span>
-                  </div>
+            {/* Top Card - Classic Vibrant Purple */}
+            <div className="absolute top-[0px] left-[0px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-[#830AD1] via-[#8B1AD6] to-[#7600C2] shadow-[4px_12px_24px_rgba(131,10,209,0.25)] border border-purple-400/25 transform rotate-[-16deg] -translate-x-2 -translate-y-2 flex flex-col justify-between p-3.5">
+              <div className="flex items-start justify-between">
+                <span className="text-white font-extrabold text-lg font-display">nu</span>
+                <span className="text-white/80 text-[7px] font-bold bg-white/10 px-1 rounded border border-white/10">Brasil</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content text */}
+        <div className="flex flex-col gap-5 text-left mb-6">
+          <h2 className="text-[32px] font-bold text-neutral-900 leading-[1.1] tracking-tight font-display max-w-[280px]">
+            Um mundo financeiro sem complexidades
+          </h2>
+        </div>
+
+        {/* Primary Bottom Button */}
+        <div className="w-full pb-4">
+          <button
+            onClick={() => setShowSplash(false)}
+            className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-4 rounded-full font-bold text-sm tracking-wide active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-[#830AD1]/15"
+          >
+            Começar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Login Input Screen (Image 2)
+  if (isRecoveryMode) {
+    return (
+      <div className="flex-1 flex flex-col bg-white text-neutral-900 p-6 min-h-[660px] justify-between select-none animate-fade-in">
+        {/* Top row with Purple Brand Logo */}
+        <div className="flex items-center justify-between w-full pt-4">
+          <div className="text-[#830AD1] font-extrabold text-3xl font-display">
+            nu
+          </div>
+          <button 
+            type="button"
+            onClick={() => setIsRecoveryMode(false)}
+            className="text-xs text-[#830AD1] hover:text-[#7209B7] font-bold cursor-pointer"
+          >
+            Voltar ao login
+          </button>
+        </div>
+
+        {/* Main Form Area */}
+        <div className="my-auto flex-1 flex flex-col justify-center max-w-[340px] w-full mx-auto py-6">
+          <h2 className="text-2xl font-bold text-neutral-900 tracking-tight font-display mb-2">
+            Esqueci minha senha
+          </h2>
+          <p className="text-xs text-neutral-500 mb-6 font-medium">
+            Recuperação de conta para <span className="font-bold text-neutral-800">{matchedUser?.name || 'Cliente'}</span>
+          </p>
+
+          {recoveryStep === 'phone' && (
+            <div className="flex flex-col gap-6 animate-scale-up">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-neutral-500">
+                  Número de Celular
+                </label>
+                <input
+                  type="text"
+                  maxLength={15}
+                  placeholder="(00) 00000-0000"
+                  value={recoveryPhone}
+                  onChange={(e) => {
+                    setRecoveryPhone(formatPhone(e.target.value));
+                    setRecoveryPhoneError('');
+                  }}
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+                />
+                {recoveryPhoneError && (
+                  <span className="text-xs text-rose-500 font-semibold">{recoveryPhoneError}</span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const clean = recoveryPhone.replace(/\D/g, '');
+                  if (clean.length < 10) {
+                    setRecoveryPhoneError('Por favor, informe um número de celular válido com DDD.');
+                    return;
+                  }
+                  setRecoveryStep('sending');
+                  const code = Math.floor(1000 + Math.random() * 9000).toString();
+                  setSentCode(code);
                   
-                  <div className="flex justify-between items-center bg-white/60 p-1.5 rounded-lg border border-neutral-100">
-                    <span className="font-semibold text-neutral-500 flex items-center gap-1">
-                      <Key className="w-3.5 h-3.5 text-[#830AD1]" />
-                      Senha do App:
-                    </span>
-                    <span className="font-extrabold text-[#830AD1] bg-[#830AD1]/10 px-2 py-0.5 rounded-md font-mono text-sm">
-                      {matchedUser.password}
+                  setTimeout(() => {
+                    setRecoveryStep('code');
+                  }, 1500);
+                }}
+                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Receber Código de Recuperação
+              </button>
+            </div>
+          )}
+
+          {recoveryStep === 'sending' && (
+            <div className="flex flex-col items-center justify-center py-8 gap-4 animate-scale-up">
+              <div className="w-12 h-12 border-4 border-t-[#830AD1] border-neutral-100 rounded-full animate-spin"></div>
+              <p className="text-sm font-bold text-neutral-600">Enviando código por SMS...</p>
+            </div>
+          )}
+
+          {recoveryStep === 'code' && (
+            <div className="flex flex-col gap-6 animate-scale-up">
+              {/* Test helper banner */}
+              <div className="bg-purple-50/80 border border-purple-100 p-4 rounded-2xl flex flex-col gap-1.5 text-xs">
+                <span className="font-bold text-[#830AD1] flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Simulador de SMS Recebido
+                </span>
+                <p className="text-neutral-600 leading-normal">
+                  Código de segurança de teste enviado para <span className="font-bold text-neutral-800">{recoveryPhone}</span>:
+                </p>
+                <span className="text-xl font-mono font-bold text-[#830AD1] bg-white border border-purple-200/50 rounded-lg py-1 px-4 self-start mt-0.5 shadow-sm">
+                  {sentCode}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-neutral-500">
+                  Código de Verificação
+                </label>
+                <input
+                  type="text"
+                  maxLength={4}
+                  placeholder="0000"
+                  value={enteredCode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setEnteredCode(val);
+                    setRecoveryCodeError('');
+                    if (val === sentCode) {
+                      setRecoveryStep('display');
+                    }
+                  }}
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-xl font-bold font-mono tracking-[0.5em] text-center text-neutral-900 transition-all placeholder:text-neutral-300 placeholder:tracking-normal"
+                />
+                {recoveryCodeError && (
+                  <span className="text-xs text-rose-500 font-semibold">{recoveryCodeError}</span>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (enteredCode === sentCode) {
+                      setRecoveryStep('display');
+                    } else {
+                      setRecoveryCodeError('Código incorreto! Digite o código de teste acima.');
+                    }
+                  }}
+                  className="flex-1 bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide cursor-pointer"
+                >
+                  Confirmar Código
+                </button>
+              </div>
+            </div>
+          )}
+
+          {recoveryStep === 'display' && (
+            <div className="flex flex-col gap-6 animate-scale-up">
+              <div className="bg-emerald-50 border border-emerald-100 p-4.5 rounded-2xl flex flex-col gap-3">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5" /> Identidade Confirmada!
+                </span>
+                <p className="text-xs text-emerald-700 font-medium">
+                  Seu celular foi verificado. Veja as suas credenciais abaixo para acessar o aplicativo:
+                </p>
+                
+                <div className="border-t border-emerald-100/50 pt-3 flex flex-col gap-2.5 text-xs text-neutral-700">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-neutral-500">Senha do App:</span>
+                    <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
+                      {matchedUser?.password}
                     </span>
                   </div>
-
-                  <div className="flex justify-between items-center bg-white/60 p-1.5 rounded-lg border border-neutral-100">
-                    <span className="font-semibold text-neutral-500 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      Senha Pix (Transação):
-                    </span>
-                    <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-mono text-sm">
-                      {matchedUser.transactionPassword}
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-neutral-500">Senha do Pix (4 dígitos):</span>
+                    <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
+                      {matchedUser?.transactionPassword}
                     </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Password field to trigger Login */}
-                <div className="flex flex-col gap-1.5 mt-1 border-t border-neutral-200/50 pt-3">
-                  <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
-                    Confirmar Senha do App ({matchedUser.password})
+              <button
+                type="button"
+                onClick={() => {
+                  if (matchedUser) {
+                    setPassword(matchedUser.password); // Autofill
+                  }
+                  setIsRecoveryMode(false);
+                }}
+                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm cursor-pointer shadow-md shadow-[#830AD1]/15"
+              >
+                Voltar e Entrar
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div></div> {/* Spacer */}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-white text-neutral-900 p-6 min-h-[660px] justify-between select-none animate-fade-in">
+      
+      {/* Top row with Purple Brand Logo */}
+      <div className="flex items-center justify-between w-full pt-4">
+        <div className="text-[#830AD1] font-extrabold text-3xl font-display">
+          nu
+        </div>
+        <button 
+          onClick={() => setShowSplash(true)}
+          className="text-xs text-neutral-400 hover:text-neutral-600 font-bold"
+        >
+          Voltar
+        </button>
+      </div>
+
+      {/* Main Acesse sua conta form */}
+      <div className="my-auto flex-1 flex flex-col justify-center max-w-[340px] w-full mx-auto py-6">
+        <h2 className="text-2xl font-bold text-neutral-900 tracking-tight font-display mb-8">
+          Acesse sua conta
+        </h2>
+
+        {!isRegisterMode ? (
+          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+            
+            {/* CPF Input Field */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-neutral-500">
+                CPF
+              </label>
+              <input
+                type="text"
+                maxLength={14}
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={handleCpfChange}
+                className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+              />
+            </div>
+
+            {/* Identified User State & Password Field */}
+            {matchedUser && (
+              <div className="flex flex-col gap-5 animate-scale-up border-t border-neutral-100 pt-5">
+                {/* Account info card */}
+                <div className="bg-[#830AD1]/5 border border-[#830AD1]/10 rounded-2xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6.5 h-6.5 rounded-full bg-[#830AD1]/10 flex items-center justify-center text-[#830AD1]">
+                      <UserCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-[#830AD1] uppercase tracking-wider">Identificado</span>
+                      <span className="text-sm font-bold text-neutral-900 leading-tight">
+                        {matchedUser.name}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Password helper indicators (For the operator) */}
+                  <div className="border-t border-neutral-200/50 pt-2.5 flex flex-col gap-1.5 text-xs text-neutral-600">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-neutral-400">Dados Bancários:</span>
+                      <span className="font-bold text-neutral-700">
+                        Ag. {matchedUser.agency} • Cc {matchedUser.accountNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-neutral-400 flex items-center gap-1">
+                        <Key className="w-3 h-3 text-[#830AD1]" />
+                        Senha do App:
+                      </span>
+                      <span className="font-bold text-[#830AD1] bg-[#830AD1]/10 px-2 py-0.5 rounded font-mono text-sm">
+                        {matchedUser.password}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-neutral-400 flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                        Senha Pix:
+                      </span>
+                      <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono text-sm">
+                        {matchedUser.transactionPassword}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password field with eyelash design */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-neutral-500">
+                    Senha
                   </label>
-                  <div className="relative">
+                  <div className="relative flex items-center">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       maxLength={8}
-                      placeholder="••••"
+                      placeholder="Senha do app"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-4 pr-10 py-2 bg-white border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-center font-bold text-lg font-mono text-neutral-900 transition-all"
+                      className="w-full py-2 pr-12 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold font-mono text-neutral-900 tracking-wider transition-all placeholder:text-neutral-300 placeholder:font-sans placeholder:tracking-normal"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-600"
+                      className="absolute right-1 p-2 rounded-full hover:bg-neutral-50 text-neutral-400 hover:text-neutral-600 transition-all cursor-pointer"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {renderEyelashIcon()}
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center mt-1 text-[11px] font-medium">
+                    <span className="text-neutral-400">
+                      Possui 8 caracteres ou mais
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRecoveryMode(true);
+                        setRecoveryStep('phone');
+                        setRecoveryPhone('');
+                        setEnteredCode('');
+                        setRecoveryPhoneError('');
+                        setRecoveryCodeError('');
+                      }}
+                      className="text-[#830AD1] hover:text-[#7209B7] font-bold hover:underline cursor-pointer"
+                    >
+                      Esqueci minha senha
                     </button>
                   </div>
                 </div>
-
-                {/* Convenient quick login option */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPassword(matchedUser.password || '');
-                    onLoginSuccess(matchedUser);
-                  }}
-                  className="w-full mt-1 py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-lg text-[10px] font-bold text-neutral-600 transition-all uppercase tracking-wider"
-                >
-                  Entrar Direto (Ignorar Senha)
-                </button>
               </div>
             )}
 
-            {/* If NOT identified, and CPF length completed */}
+            {/* Unrecognized CPF Handler */}
             {cpf.length === 14 && !matchedUser && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 animate-scale-up flex flex-col gap-3">
+              <div className="bg-amber-50/70 border border-amber-200/50 rounded-2xl p-4 animate-scale-up flex flex-col gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-wider">Usuário Não Encontrado</span>
-                  <p className="text-xs text-amber-700 font-medium">
-                    Não encontramos nenhuma conta cadastrada para o CPF <span className="font-bold">{cpf}</span> no banco de dados.
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Novo CPF Identificado</span>
+                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                    Este CPF não está no banco local. Vamos criar uma nova conta personalizada?
                   </p>
                 </div>
                 <button
@@ -239,39 +535,40 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setNewName('');
                     setIsRegisterMode(true);
                   }}
-                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-amber-600/10"
+                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs tracking-wide rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <Plus className="w-4 h-4" />
-                  Criar Nova Conta com Este CPF
+                  <Plus className="w-3.5 h-3.5" />
+                  Criar Conta com Este CPF
                 </button>
               </div>
             )}
 
-            {/* Action buttons */}
+            {/* Bottom Form Action Button */}
             {matchedUser && (
               <button
                 type="submit"
-                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3 rounded-xl font-bold text-sm tracking-wide shadow-md active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-4 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
               >
-                Acessar Conta
+                Continuar
+                <ArrowRight className="w-4 h-4 text-white" />
               </button>
             )}
           </form>
         ) : (
-          /* Registration Subform */
-          <form onSubmit={handleRegister} className="flex flex-col gap-3 bg-neutral-50 p-4 border border-neutral-200/50 rounded-2xl animate-scale-up">
+          /* High-Fidelity Registration Form */
+          <form onSubmit={handleRegister} className="flex flex-col gap-4 bg-neutral-50/50 p-4.5 border border-neutral-200/60 rounded-2xl animate-scale-up">
             <div className="flex items-center gap-2 border-b border-neutral-200/50 pb-2 mb-1">
               <Landmark className="w-4 h-4 text-[#830AD1]" />
-              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Criar Usuário no Nu</span>
+              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Criar Nova Conta</span>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-neutral-500 uppercase">CPF Escolhido</label>
+              <label className="text-[10px] font-bold text-neutral-500 uppercase">CPF</label>
               <input
                 type="text"
                 disabled
                 value={cpf}
-                className="px-3 py-1.5 bg-neutral-200 border border-neutral-300 rounded-lg text-neutral-600 font-bold font-mono text-xs cursor-not-allowed"
+                className="px-3 py-2 bg-neutral-150 border border-neutral-200 rounded-xl text-neutral-600 font-bold font-mono text-xs cursor-not-allowed"
               />
             </div>
 
@@ -280,10 +577,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
               <input
                 type="text"
                 required
-                placeholder="Ex: Matheus Carvalho"
+                placeholder="Ex: Pedro Gabriel Silva"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs font-bold"
+                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold"
               />
             </div>
 
@@ -295,7 +592,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   required
                   value={newAgency}
                   onChange={(e) => setNewAgency(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -305,7 +602,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   required
                   value={newAccount}
                   onChange={(e) => setNewAccount(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs"
                 />
               </div>
             </div>
@@ -317,7 +614,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 required
                 value={newBalance}
                 onChange={(e) => setNewBalance(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs font-bold"
+                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold"
               />
             </div>
 
@@ -328,9 +625,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   type="text"
                   maxLength={6}
                   required
+                  placeholder="Ex: 1105"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -339,9 +637,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   type="text"
                   maxLength={6}
                   required
+                  placeholder="Ex: 5424"
                   value={newTxPassword}
                   onChange={(e) => setNewTxPassword(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono"
                 />
               </div>
             </div>
@@ -358,29 +657,28 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 type="submit"
                 className="py-2.5 bg-[#830AD1] hover:bg-[#7209B7] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#830AD1]/10"
               >
-                Registrar e Acessar
+                Registrar e Entrar
               </button>
             </div>
           </form>
         )}
       </div>
 
-      {/* Collapsible Simulation Panel */}
-      <div className="border-t border-neutral-100 pt-4 flex flex-col gap-3">
+      {/* Subtle Demo Accounts Portal Drawer Link (Keeps it beautiful while fully functional) */}
+      <div className="border-t border-neutral-150 pt-4 flex flex-col gap-2.5">
         {!showDemoAccounts ? (
           <button
             type="button"
-            id="btn-toggle-demo"
             onClick={() => setShowDemoAccounts(true)}
-            className="w-full py-2.5 bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-200/60 rounded-xl text-xs font-bold text-neutral-500 hover:text-[#830AD1] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            className="w-full py-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/50 rounded-xl text-[11px] font-bold text-neutral-500 hover:text-[#830AD1] transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#830AD1] animate-pulse" />
-            Clique aqui para ver contas de teste / demonstração
+            Contas de teste (Clique para preencher)
           </button>
         ) : (
-          <div className="bg-neutral-50/50 border border-neutral-200/50 rounded-2xl p-4 animate-scale-up flex flex-col gap-3">
+          <div className="bg-neutral-50 border border-neutral-200/50 rounded-2xl p-4 animate-scale-up flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#830AD1] uppercase tracking-wider flex items-center gap-1">
+              <span className="text-[10px] font-bold text-[#830AD1] uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Contas para Simulação
               </span>
               <button
@@ -393,43 +691,26 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
             </div>
             
             <div className="grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                id="btn-autofill-pedro"
-                onClick={() => handleAutoFillCpf('110.542.545-24')}
-                className={`px-3 py-2.5 rounded-xl text-left border flex items-center justify-between text-xs transition-all cursor-pointer ${
-                  cpf === '110.542.545-24' 
-                    ? 'bg-[#830AD1]/10 border-[#830AD1]/30 text-[#830AD1] font-bold shadow-sm' 
-                    : 'bg-white hover:bg-neutral-50 border-neutral-200/80 text-neutral-600 shadow-xs'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="font-extrabold text-neutral-800">Pedro Gabriel (BB)</span>
-                  <span className="text-[10px] text-neutral-400 font-mono">CPF: 110.542.545-24</span>
-                </div>
-                <span className="text-[10px] bg-[#830AD1]/5 px-2 py-0.5 rounded border border-[#830AD1]/10 font-mono text-[#830AD1] font-bold">
-                  Senha: 1105
-                </span>
-              </button>
-
-              <button
-                type="button"
-                id="btn-autofill-mariasidney"
-                onClick={() => handleAutoFillCpf('006.443.695-07')}
-                className={`px-3 py-2.5 rounded-xl text-left border flex items-center justify-between text-xs transition-all cursor-pointer ${
-                  cpf === '006.443.695-07' 
-                    ? 'bg-[#830AD1]/10 border-[#830AD1]/30 text-[#830AD1] font-bold shadow-sm' 
-                    : 'bg-white hover:bg-neutral-50 border-neutral-200/80 text-neutral-600 shadow-xs'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="font-extrabold text-neutral-800">Maria Sidney (PagSeguro)</span>
-                  <span className="text-[10px] text-neutral-400 font-mono">CPF: 006.443.695-07</span>
-                </div>
-                <span className="text-[10px] bg-[#830AD1]/5 px-2 py-0.5 rounded border border-[#830AD1]/10 font-mono text-[#830AD1] font-bold">
-                  Senha: 0064
-                </span>
-              </button>
+              {usersDatabase.slice(0, 3).map((u) => (
+                <button
+                  key={u.cpf}
+                  type="button"
+                  onClick={() => handleAutoFillCpf(u.cpf, u.password)}
+                  className={`px-3 py-2 rounded-xl text-left border flex items-center justify-between text-xs transition-all cursor-pointer ${
+                    cpf === u.cpf 
+                      ? 'bg-[#830AD1]/10 border-[#830AD1]/30 text-[#830AD1] font-bold' 
+                      : 'bg-white hover:bg-neutral-50 border-neutral-200/70 text-neutral-600'
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-bold text-neutral-800 text-[11px]">{u.name.split(' ').slice(0, 2).join(' ')}</span>
+                    <span className="text-[9px] text-neutral-400 font-mono">CPF: {u.cpf}</span>
+                  </div>
+                  <div className="text-[9px] bg-purple-50 border border-purple-100/50 px-2 py-0.5 rounded font-mono text-[#830AD1] font-bold">
+                    Senha: {u.password}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         )}

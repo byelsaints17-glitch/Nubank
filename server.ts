@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
 
 // Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
@@ -10,6 +11,20 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Inicialização do cliente Supabase
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+let supabase: any = null;
+
+if (supabaseUrl && supabaseKey) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+    console.log("[SUPABASE] Cliente inicializado com sucesso.");
+  } catch (err: any) {
+    console.error("[SUPABASE] Falha ao inicializar o cliente Supabase:", err.message);
+  }
+}
 
 // Estruturas de dados em memória para simulação, cache e logs
 interface LogEntry {
@@ -303,6 +318,27 @@ app.post("/api/authorized-cpfs", (req: Request, res: Response) => {
   }
 
   addLog("INFO", "SYSTEM", `Novo CPF autorizado pelo operador com sucesso: ${clean}`, { nome: serproDatabase[clean]?.nome });
+
+  // Sync to Supabase if configured
+  if (supabase) {
+    const details = serproDatabase[clean];
+    Promise.all([
+      supabase.from("authorized_cpfs").upsert({ cpf: clean, nome: details?.nome }),
+      supabase.from("serpro_database").upsert({
+        cpf: clean,
+        nome: details?.nome,
+        data_inscricao: details?.dataInscricao,
+        data_atualizacao: details?.dataAtualizacao,
+        situacao: details?.situacao,
+        banco: details?.banco,
+        agencia: details?.agencia,
+        conta: details?.conta
+      })
+    ]).catch((err: any) => {
+      addLog("WARN", "SYSTEM", "Erro ao salvar em tempo real no Supabase. É possível que as tabelas não tenham sido criadas.", { error: err.message });
+    });
+  }
+
   res.json({ success: true, cpf: clean, name: serproDatabase[clean]?.nome, total: authorizedCPFs.size });
 });
 
@@ -312,6 +348,17 @@ app.delete("/api/authorized-cpfs/:cpf", (req: Request, res: Response) => {
   if (authorizedCPFs.has(clean)) {
     authorizedCPFs.delete(clean);
     addLog("INFO", "SYSTEM", `CPF removido das autorizações do operador: ${clean}`);
+
+    // Sync deletion to Supabase
+    if (supabase) {
+      Promise.all([
+        supabase.from("authorized_cpfs").delete().eq("cpf", clean),
+        supabase.from("serpro_database").delete().eq("cpf", clean)
+      ]).catch((err: any) => {
+        addLog("WARN", "SYSTEM", "Erro ao deletar do Supabase.", { error: err.message });
+      });
+    }
+
     res.json({ success: true, message: "CPF removido com sucesso." });
   } else {
     res.status(444).json({ error: "Not found", message: "CPF não consta na lista de autorizados." });
@@ -609,8 +656,107 @@ app.get("/api/banks/:code", async (req: Request, res: Response) => {
 
 // ==================== CONFIGURAÇÃO DO VITE / PRODUÇÃO ====================
 
+// Sincronização em tempo real e de inicialização com o Supabase
+async function syncDatabaseWithSupabase() {
+  if (!supabase) {
+    addLog("INFO", "SYSTEM", "Supabase não configurado via variáveis de ambiente. Utilizando cache e persistência em memória local.");
+    return;
+  }
+
+  addLog("INFO", "SYSTEM", "Sincronizando banco de dados com as tabelas do Supabase...");
+
+  try {
+    // 1. Tenta recuperar CPFs Autorizados
+    const { data: authData, error: authError } = await supabase
+      .from("authorized_cpfs")
+      .select("*");
+
+    if (authError) {
+      if (authError.message?.includes("relation") || authError.message?.includes("does not exist")) {
+        addLog("WARN", "SYSTEM", "A tabela 'authorized_cpfs' não foi criada no Supabase ainda. Usando banco em memória.");
+      } else {
+        throw authError;
+      }
+    } else if (authData) {
+      addLog("INFO", "SYSTEM", `Recuperados ${authData.length} CPFs autorizados do Supabase.`);
+      authData.forEach((row: any) => {
+        if (row.cpf) {
+          authorizedCPFs.add(row.cpf.replace(/\D/g, ""));
+        }
+      });
+    }
+
+    // 2. Tenta recuperar banco do SERPRO
+    const { data: serproData, error: serproError } = await supabase
+      .from("serpro_database")
+      .select("*");
+
+    if (serproError) {
+      if (serproError.message?.includes("relation") || serproError.message?.includes("does not exist")) {
+        addLog("WARN", "SYSTEM", "A tabela 'serpro_database' não foi criada no Supabase ainda. Usando banco em memória.");
+      } else {
+        throw serproError;
+      }
+    } else if (serproData) {
+      addLog("INFO", "SYSTEM", `Recuperadas ${serproData.length} entradas oficiais de CPF do Supabase.`);
+      serproData.forEach((row: any) => {
+        if (row.cpf) {
+          const clean = row.cpf.replace(/\D/g, "");
+          serproDatabase[clean] = {
+            nome: row.nome,
+            dataInscricao: row.data_inscricao || "2026-07-07",
+            dataAtualizacao: row.data_atualizacao || "2026-07-07",
+            situacao: row.situacao || "REGULAR",
+            banco: row.banco,
+            agencia: row.agencia,
+            conta: row.conta
+          };
+          authorizedCPFs.add(clean);
+        }
+      });
+    }
+
+    // 3. Auto-seeding: Se as tabelas existirem, garante que nossos usuários padrão (Pedro Gabriel e Maria Sidney) existam nelas
+    addLog("INFO", "SYSTEM", "Atualizando/semeando tabelas do Supabase com usuários padrão...");
+    for (const [cpf, details] of Object.entries(serproDatabase)) {
+      try {
+        await supabase
+          .from("serpro_database")
+          .upsert({
+            cpf,
+            nome: details.nome,
+            data_inscricao: details.dataInscricao,
+            data_atualizacao: details.dataAtualizacao,
+            situacao: details.situacao,
+            banco: details.banco,
+            agencia: details.agencia,
+            conta: details.conta
+          });
+
+        await supabase
+          .from("authorized_cpfs")
+          .upsert({
+            cpf,
+            nome: details.nome
+          });
+      } catch (e) {
+        // Silenciosamente falha caso o schema ou tabelas não estejam criados
+      }
+    }
+
+    addLog("INFO", "SYSTEM", "Sincronização com o Supabase finalizada com sucesso!");
+  } catch (error: any) {
+    addLog("ERROR", "SYSTEM", "Falha ao sincronizar com o Supabase. Verifique se as credenciais e tabelas estão corretas.", {
+      message: error.message
+    });
+  }
+}
+
 // Vite Middleware para Desenvolvimento vs Atendimento estático para Produção
 async function configureFrontend() {
+  // Sincroniza o banco de dados antes de iniciar
+  await syncDatabaseWithSupabase();
+
   if (process.env.NODE_ENV !== "production") {
     addLog("INFO", "SYSTEM", "Iniciando servidor Express com Vite integrado (Modo Desenvolvimento)...");
     const vite = await createViteServer({
