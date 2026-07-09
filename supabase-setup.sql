@@ -60,3 +60,23 @@ CREATE TABLE IF NOT EXISTS public.comprovantes (
 ALTER TABLE public.comprovantes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read and write" ON public.comprovantes 
     FOR ALL USING (true) WITH CHECK (true);
+
+-- 4. Create 'bank_users' table (Database for storing bank customers and login details)
+CREATE TABLE IF NOT EXISTS public.bank_users (
+    cpf TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    agency TEXT DEFAULT '0001',
+    "accountNumber" TEXT NOT NULL,
+    "bankName" TEXT DEFAULT 'Nu Pagamentos S.A.',
+    balance NUMERIC(15, 2) DEFAULT 0.00,
+    "creditCardInvoice" NUMERIC(15, 2) DEFAULT 0.00,
+    "creditCardLimit" NUMERIC(15, 2) DEFAULT 1000.00,
+    password TEXT NOT NULL,
+    "transactionPassword" TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.bank_users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read and write" ON public.bank_users 
+    FOR ALL USING (true) WITH CHECK (true);
+

@@ -324,10 +324,53 @@ export default function App() {
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('500.00');
 
-  // Synchronize changes to active user back to our dynamic users database
+  // Synchronize changes to active user back to our dynamic users database and server database
   useEffect(() => {
     setUsersDatabase(prev => prev.map(u => u.cpf === user.cpf ? user : u));
-  }, [user]);
+    
+    const syncUserToBackend = async () => {
+      if (user && user.cpf && isAuthenticated) {
+        try {
+          await fetch(`/api/users/${encodeURIComponent(user.cpf)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+          });
+        } catch (e) {
+          console.error("Erro ao sincronizar usuário com o servidor:", e);
+        }
+      }
+    };
+    syncUserToBackend();
+  }, [user, isAuthenticated]);
+
+  // Fetch users from server on mount or authentication change
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        if (res.ok) {
+          const data = await res.json();
+          setUsersDatabase(data);
+          
+          // Se houver um usuário ativo salvo localmente, atualiza com a versão mais recente do servidor
+          const savedActiveUser = localStorage.getItem('nubank_active_user');
+          if (savedActiveUser) {
+            try {
+              const parsed = JSON.parse(savedActiveUser);
+              const freshUser = data.find((u: BankUser) => u.cpf === parsed.cpf);
+              if (freshUser) {
+                setUser(freshUser);
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar banco de dados de usuários do servidor:", err);
+      }
+    };
+    fetchUsers();
+  }, [isAuthenticated]);
 
   // When user.cpf changes, load the correct state for this user from localStorage or defaults
   useEffect(() => {

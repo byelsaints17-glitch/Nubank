@@ -24,6 +24,9 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
   const [newBalance, setNewBalance] = useState('1500.00');
   const [newPassword, setNewPassword] = useState('');
   const [newTxPassword, setNewTxPassword] = useState('');
+  const [newBankName, setNewBankName] = useState('Nu Pagamentos S.A.');
+  const [newCreditCardLimit, setNewCreditCardLimit] = useState('5000.00');
+  const [newCreditCardInvoice, setNewCreditCardInvoice] = useState('0.00');
 
   // Recovery states
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
@@ -80,21 +83,36 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
     }
   }, [cpf, matchedUser]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matchedUser) return;
 
-    if (password === matchedUser.password) {
-      onLoginSuccess(matchedUser);
-    } else {
-      alert('Senha incorreta! Para fins de teste, use a senha informada no painel ou clique em "Acesso Direto".');
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: matchedUser.cpf, password })
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        onLoginSuccess(result.user);
+      } else {
+        alert(result.message || 'Senha incorreta! Para fins de teste, use a senha informada no painel ou clique em "Acesso Direto".');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao se conectar ao servidor de autenticação.');
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) {
       alert('Por favor, informe o nome completo do usuário.');
+      return;
+    }
+    if (cpf.length < 14) {
+      alert('Por favor, informe um CPF válido.');
       return;
     }
 
@@ -103,16 +121,31 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
       cpf: cpf,
       agency: newAgency || '0001',
       accountNumber: newAccount || '1234567-8',
-      bankName: 'Nu Pagamentos S.A.',
+      bankName: newBankName || 'Nu Pagamentos S.A.',
       balance: parseFloat(newBalance) || 0,
-      creditCardInvoice: 16.44, // Default realistic invoice matching the mockup
-      creditCardLimit: 983.56,  // Default limit
+      creditCardInvoice: parseFloat(newCreditCardInvoice) || 0,
+      creditCardLimit: parseFloat(newCreditCardLimit) || 0,
       password: newPassword || '1234',
       transactionPassword: newTxPassword || '1234'
     };
 
-    onRegisterUser(newUser);
-    onLoginSuccess(newUser);
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        onRegisterUser(newUser);
+        onLoginSuccess(newUser);
+      } else {
+        alert(result.message || 'Erro ao registrar usuário no servidor.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao registrar usuário no servidor.');
+    }
   };
 
   const handleAutoFillCpf = (targetCpf: string, targetPass?: string) => {
@@ -621,111 +654,203 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 <ArrowRight className="w-4 h-4 text-white" />
               </button>
             )}
+
+            {!matchedUser && (
+              <div className="flex flex-col gap-2 mt-4">
+                <div className="text-center text-[10px] font-bold text-neutral-400 uppercase tracking-wider my-1">Ainda não tem conta?</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegisterMode(true);
+                    setNewName('');
+                    const randomAcc = Math.floor(10000000 + Math.random() * 90000000) + '-' + Math.floor(Math.random() * 9);
+                    setNewAccount(randomAcc);
+                    setNewPassword(Math.floor(1000 + Math.random() * 9000).toString());
+                    setNewTxPassword(Math.floor(1000 + Math.random() * 9000).toString());
+                    setNewBankName('Nu Pagamentos S.A.');
+                    setNewCreditCardLimit('5000.00');
+                    setNewCreditCardInvoice('0.00');
+                    setNewBalance('1500.00');
+                  }}
+                  className="w-full bg-white hover:bg-neutral-50 border border-neutral-350 text-neutral-750 py-3.5 rounded-full font-bold text-xs tracking-wide active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-[#830AD1]" />
+                  Criar Conta Corrente Grátis
+                </button>
+              </div>
+            )}
           </form>
         ) : (
           /* High-Fidelity Registration Form */
-          <form onSubmit={handleRegister} className="flex flex-col gap-4 bg-neutral-50/50 p-4.5 border border-neutral-200/60 rounded-2xl animate-scale-up">
-            <div className="flex items-center gap-2 border-b border-neutral-200/50 pb-2 mb-1">
+          <form onSubmit={handleRegister} className="flex flex-col gap-3.5 bg-neutral-50/50 p-4 border border-neutral-200/60 rounded-2xl animate-scale-up max-h-[500px] overflow-y-auto">
+            <div className="flex items-center gap-2 border-b border-neutral-200/50 pb-2 mb-0.5 sticky top-0 bg-neutral-50/95 backdrop-blur-xs z-10">
               <Landmark className="w-4 h-4 text-[#830AD1]" />
-              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Criar Nova Conta</span>
+              <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Criar Nova Conta Corrente</span>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-neutral-500 uppercase">CPF</label>
-              <input
-                type="text"
-                disabled
-                value={cpf}
-                className="px-3 py-2 bg-neutral-150 border border-neutral-200 rounded-xl text-neutral-600 font-bold font-mono text-xs cursor-not-allowed"
-              />
-            </div>
+            {/* SEÇÃO 1: DADOS PESSOAIS */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">1. Dados Pessoais</span>
+              <div className="grid grid-cols-1 gap-2.5">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">Nome Completo</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Pedro Gabriel Silva"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                  />
+                </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-neutral-500 uppercase">Nome Completo</label>
-              <input
-                type="text"
-                required
-                placeholder="Ex: Pedro Gabriel Silva"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 font-mono">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-sans font-bold text-neutral-500 uppercase">Agência</label>
-                <input
-                  type="text"
-                  required
-                  value={newAgency}
-                  onChange={(e) => setNewAgency(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-sans font-bold text-neutral-500 uppercase">Conta</label>
-                <input
-                  type="text"
-                  required
-                  value={newAccount}
-                  onChange={(e) => setNewAccount(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs"
-                />
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">CPF</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={14}
+                    placeholder="000.000.000-00"
+                    value={cpf}
+                    onChange={(e) => setCpf(formatCpf(e.target.value))}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold font-mono text-neutral-950"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-neutral-500 uppercase">Saldo Inicial (R$)</label>
-              <input
-                type="number"
-                required
-                value={newBalance}
-                onChange={(e) => setNewBalance(e.target.value)}
-                className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
+            {/* SEÇÃO 2: DADOS BANCÁRIOS */}
+            <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
+              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">2. Dados da Conta</span>
+              
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-neutral-500 uppercase">Senha App</label>
+                <label className="text-[10px] font-bold text-neutral-500 uppercase">Instituição Bancária</label>
+                <select
+                  value={newBankName}
+                  onChange={(e) => setNewBankName(e.target.value)}
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-800"
+                >
+                  <option value="Nu Pagamentos S.A.">Nu Pagamentos S.A. (Nubank)</option>
+                  <option value="Banco Bradesco S.A.">Banco Bradesco S.A.</option>
+                  <option value="Itaú Unibanco S.A.">Itaú Unibanco S.A.</option>
+                  <option value="Banco do Brasil S.A.">Banco do Brasil S.A.</option>
+                  <option value="Caixa Econômica Federal">Caixa Econômica Federal</option>
+                  <option value="Banco Santander (Brasil) S.A.">Banco Santander</option>
+                  <option value="Banco Inter S.A.">Banco Inter S.A.</option>
+                  <option value="C6 Bank S.A.">C6 Bank S.A.</option>
+                  <option value="PagSeguro Internet S.A.">PagSeguro S.A.</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 font-mono">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-sans font-bold text-neutral-500 uppercase">Agência</label>
+                  <input
+                    type="text"
+                    required
+                    value={newAgency}
+                    onChange={(e) => setNewAgency(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-neutral-950 font-bold"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-sans font-bold text-neutral-500 uppercase">Nº da Conta</label>
+                  <input
+                    type="text"
+                    required
+                    value={newAccount}
+                    onChange={(e) => setNewAccount(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-neutral-950 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-neutral-500 uppercase">Saldo Inicial da Conta (R$)</label>
                 <input
-                  type="text"
-                  maxLength={6}
+                  type="number"
                   required
-                  placeholder="Ex: 1105"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono"
+                  step="0.01"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(e.target.value)}
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-neutral-500 uppercase">Senha Pix</label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  placeholder="Ex: 5424"
-                  value={newTxPassword}
-                  onChange={(e) => setNewTxPassword(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono"
-                />
+            </div>
+
+            {/* SEÇÃO 3: CARTÃO DE CRÉDITO */}
+            <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
+              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">3. Cartão de Crédito</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">Limite (R$)</label>
+                  <input
+                    type="number"
+                    required
+                    step="0.01"
+                    value={newCreditCardLimit}
+                    onChange={(e) => setNewCreditCardLimit(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">Fatura Inicial (R$)</label>
+                  <input
+                    type="number"
+                    required
+                    step="0.01"
+                    value={newCreditCardInvoice}
+                    onChange={(e) => setNewCreditCardInvoice(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            {/* SEÇÃO 4: SEGURANÇA */}
+            <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
+              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">4. Segurança e Senhas</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">Senha App (Login)</label>
+                  <input
+                    type="text"
+                    maxLength={8}
+                    required
+                    placeholder="Ex: 1105"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase">Senha Pix (4 dígitos)</label>
+                  <input
+                    type="text"
+                    maxLength={4}
+                    required
+                    placeholder="Ex: 5424"
+                    value={newTxPassword}
+                    onChange={(e) => setNewTxPassword(e.target.value)}
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-3.5 pt-2.5 border-t border-neutral-200/50 sticky bottom-0 bg-neutral-50/95 backdrop-blur-xs z-10">
               <button
                 type="button"
                 onClick={() => setIsRegisterMode(false)}
-                className="py-2.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-600 font-bold text-xs rounded-xl transition-all"
+                className="py-3 bg-neutral-200 hover:bg-neutral-300 text-neutral-600 font-bold text-xs rounded-xl transition-all cursor-pointer"
               >
-                Voltar
+                Cancelar
               </button>
               <button
                 type="submit"
-                className="py-2.5 bg-[#830AD1] hover:bg-[#7209B7] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#830AD1]/10"
+                className="py-3 bg-[#830AD1] hover:bg-[#7209B7] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#830AD1]/10 cursor-pointer"
               >
-                Registrar e Entrar
+                Salvar Conta Corrente
               </button>
             </div>
           </form>

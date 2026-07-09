@@ -30,7 +30,8 @@ if (supabaseUrl && supabaseKey) {
 const tableStatus = {
   comprovantes: true,
   authorized_cpfs: true,
-  serpro_database: true
+  serpro_database: true,
+  bank_users: true
 };
 
 // Estruturas de dados em memória para simulação, cache e logs
@@ -58,6 +59,83 @@ function addLog(level: "INFO" | "WARN" | "ERROR", category: LogEntry["category"]
   if (serverLogs.length > 200) serverLogs.pop(); // Mantém os últimos 200 logs
   console.log(`[${entry.timestamp}] [${entry.level}] [${entry.category}] ${entry.message}`, details ? JSON.stringify(details) : "");
 }
+
+export interface BankUser {
+  name: string;
+  cpf: string;
+  agency: string;
+  accountNumber: string;
+  bankName: string;
+  balance: number;
+  creditCardInvoice: number;
+  creditCardLimit: number;
+  password?: string;
+  transactionPassword?: string;
+}
+
+// Banco de dados de usuários persistente / simulado
+let serverUsers: BankUser[] = [
+  {
+    name: 'PEDRO GABRIEL DOS SANTOS SILVA',
+    cpf: '110.542.545-24',
+    agency: '0001',
+    accountNumber: '11054254-5',
+    bankName: 'NU PAGAMENTOS - IP',
+    balance: 15420.00,
+    creditCardInvoice: 1105.42,
+    creditCardLimit: 12000.00,
+    password: '1105',
+    transactionPassword: '5424'
+  },
+  {
+    name: 'MARIA SIDNEY FERREIRA DOS SANTOS MARTINS',
+    cpf: '006.443.695-07',
+    agency: '0001',
+    accountNumber: '1234567-8',
+    bankName: 'PagSeguro Internet S.A.',
+    balance: 4500.00,
+    creditCardInvoice: 150.00,
+    creditCardLimit: 5000.00,
+    password: '0064',
+    transactionPassword: '6950'
+  },
+  {
+    name: 'FRANCISCO MANOEL DA SILVA',
+    cpf: '000.965.814-00',
+    agency: '0001',
+    accountNumber: '98844089-7',
+    bankName: 'Banco Bradesco S.A.',
+    balance: 850.00,
+    creditCardInvoice: 100.00,
+    creditCardLimit: 3000.00,
+    password: '1234',
+    transactionPassword: '1234'
+  },
+  {
+    name: 'Nathan Henrique Alves Ferreira',
+    cpf: '234.567.890-12',
+    agency: '0001',
+    accountNumber: '48708843-1',
+    bankName: 'Nu Pagamentos S.A.',
+    balance: 2160.00,
+    creditCardInvoice: 1224.50,
+    creditCardLimit: 8500.00,
+    password: '2345',
+    transactionPassword: '8901'
+  },
+  {
+    name: 'Gabriela M Lima',
+    cpf: '888.777.666-55',
+    agency: '0001',
+    accountNumber: '9827-1',
+    bankName: 'Nu Pagamentos S.A.',
+    balance: 1357.97,
+    creditCardInvoice: 1224.50,
+    creditCardLimit: 8500.00,
+    password: '8887',
+    transactionPassword: '6665'
+  }
+];
 
 // 1. Banco de CPFs Autorizados pelo operador da aplicação (Conforme especificado)
 // Inicializado com alguns CPFs de teste correspondentes aos usuários do aplicativo Nubank
@@ -991,6 +1069,197 @@ app.delete("/api/comprovantes", async (req: Request, res: Response) => {
   res.json({ success: true, message: "Histórico de comprovantes limpo com sucesso." });
 });
 
+// 13. GET /api/users - Retorna a lista de usuários cadastrados
+app.get("/api/users", async (req: Request, res: Response) => {
+  if (supabase && tableStatus.bank_users) {
+    try {
+      const { data, error } = await supabase
+        .from("bank_users")
+        .select("*");
+      if (!error && data) {
+        const mapped: BankUser[] = data.map((u: any) => ({
+          name: u.name,
+          cpf: u.cpf,
+          agency: u.agency,
+          accountNumber: u.accountNumber,
+          bankName: u.bankName,
+          balance: Number(u.balance),
+          creditCardInvoice: Number(u.creditCardInvoice),
+          creditCardLimit: Number(u.creditCardLimit),
+          password: u.password,
+          transactionPassword: u.transactionPassword
+        }));
+        serverUsers = mapped;
+        return res.json(mapped);
+      } else if (error) {
+        const isMissingTable = error.message?.includes("schema cache") || error.message?.includes("relation") || error.message?.includes("does not exist");
+        if (isMissingTable) {
+          tableStatus.bank_users = false;
+        }
+      }
+    } catch (err: any) {
+      addLog("WARN", "SYSTEM", "Erro ao recuperar usuários do Supabase. Usando local.", { error: err.message });
+    }
+  }
+  res.json(serverUsers);
+});
+
+// 14. POST /api/users - Cadastra ou atualiza um usuário no banco de dados
+app.post("/api/users", async (req: Request, res: Response) => {
+  const newUser: BankUser = req.body;
+  if (!newUser.cpf || !newUser.name) {
+    return res.status(400).json({ error: "Missing parameter", message: "Os campos CPF e Nome são obrigatórios." });
+  }
+
+  // Normaliza CPF para salvar
+  const cleanCpf = newUser.cpf.trim();
+  const existingIndex = serverUsers.findIndex(u => u.cpf === cleanCpf);
+  
+  if (existingIndex !== -1) {
+    serverUsers[existingIndex] = newUser;
+  } else {
+    serverUsers.push(newUser);
+  }
+
+  // Garante autorização do CPF no sistema
+  authorizedCPFs.add(cleanCpf.replace(/\D/g, ""));
+
+  addLog("INFO", "SYSTEM", `Usuário salvo/atualizado em memória: ${newUser.name} (CPF: ${newUser.cpf})`);
+
+  // Persiste no Supabase se disponível
+  if (supabase && tableStatus.bank_users) {
+    try {
+      const { error } = await supabase
+        .from("bank_users")
+        .upsert({
+          cpf: cleanCpf,
+          name: newUser.name,
+          agency: newUser.agency || "0001",
+          accountNumber: newUser.accountNumber,
+          bankName: newUser.bankName || "Nu Pagamentos S.A.",
+          balance: newUser.balance,
+          creditCardInvoice: newUser.creditCardInvoice,
+          creditCardLimit: newUser.creditCardLimit,
+          password: newUser.password || "1234",
+          transactionPassword: newUser.transactionPassword || "1234"
+        });
+
+      if (error) {
+        const isMissingTable = error.message?.includes("schema cache") || error.message?.includes("relation") || error.message?.includes("does not exist");
+        if (isMissingTable) {
+          tableStatus.bank_users = false;
+        } else {
+          addLog("WARN", "SYSTEM", "Erro ao salvar usuário no Supabase.", { error: error.message });
+        }
+      } else {
+        addLog("INFO", "SYSTEM", "Usuário salvo com sucesso no Supabase!");
+      }
+    } catch (err: any) {
+      addLog("WARN", "SYSTEM", "Erro ao persistir no Supabase.", { error: err.message });
+    }
+  }
+
+  res.json({ success: true, data: newUser });
+});
+
+// 15. PUT /api/users/:cpf - Atualiza campos específicos do usuário
+app.put("/api/users/:cpf", async (req: Request, res: Response) => {
+  const { cpf } = req.params;
+  const updatedFields: Partial<BankUser> = req.body;
+  
+  const cleanCpfParam = cpf.replace(/\D/g, "");
+  const existingIndex = serverUsers.findIndex(u => u.cpf.replace(/\D/g, "") === cleanCpfParam);
+
+  if (existingIndex === -1) {
+    return res.status(404).json({ error: "User not found", message: "Usuário não encontrado." });
+  }
+
+  // Atualiza em memória
+  serverUsers[existingIndex] = {
+    ...serverUsers[existingIndex],
+    ...updatedFields
+  };
+
+  const updatedUser = serverUsers[existingIndex];
+  addLog("INFO", "SYSTEM", `Usuário atualizado em memória: ${updatedUser.name} (CPF: ${updatedUser.cpf})`);
+
+  // Atualiza no Supabase se disponível
+  if (supabase && tableStatus.bank_users) {
+    try {
+      const { error } = await supabase
+        .from("bank_users")
+        .upsert({
+          cpf: updatedUser.cpf,
+          name: updatedUser.name,
+          agency: updatedUser.agency,
+          accountNumber: updatedUser.accountNumber,
+          bankName: updatedUser.bankName,
+          balance: updatedUser.balance,
+          creditCardInvoice: updatedUser.creditCardInvoice,
+          creditCardLimit: updatedUser.creditCardLimit,
+          password: updatedUser.password,
+          transactionPassword: updatedUser.transactionPassword
+        });
+
+      if (error) {
+        addLog("WARN", "SYSTEM", "Erro ao atualizar usuário no Supabase.", { error: error.message });
+      }
+    } catch (err: any) {
+      addLog("WARN", "SYSTEM", "Erro ao persistir atualização no Supabase.", { error: err.message });
+    }
+  }
+
+  res.json({ success: true, data: updatedUser });
+});
+
+// 16. POST /api/login - Valida o login do usuário
+app.post("/api/login", async (req: Request, res: Response) => {
+  const { cpf, password } = req.body;
+  if (!cpf || !password) {
+    return res.status(400).json({ error: "Missing parameter", message: "CPF e Senha são obrigatórios." });
+  }
+
+  const cleanCpf = cpf.replace(/\D/g, "");
+  let foundUser = serverUsers.find(u => u.cpf.replace(/\D/g, "") === cleanCpf);
+
+  // Se tiver Supabase, busca direto para garantir dados atualizados
+  if (supabase && tableStatus.bank_users) {
+    try {
+      const { data, error } = await supabase
+        .from("bank_users")
+        .select("*")
+        .eq("cpf", cpf)
+        .single();
+      
+      if (!error && data) {
+        foundUser = {
+          name: data.name,
+          cpf: data.cpf,
+          agency: data.agency,
+          accountNumber: data.accountNumber,
+          bankName: data.bankName,
+          balance: Number(data.balance),
+          creditCardInvoice: Number(data.creditCardInvoice),
+          creditCardLimit: Number(data.creditCardLimit),
+          password: data.password,
+          transactionPassword: data.transactionPassword
+        };
+      }
+    } catch (err) {}
+  }
+
+  if (!foundUser) {
+    return res.status(404).json({ error: "Not found", message: "Usuário com este CPF não está cadastrado." });
+  }
+
+  if (foundUser.password !== password) {
+    return res.status(401).json({ error: "Unauthorized", message: "Senha incorreta." });
+  }
+
+  addLog("INFO", "OAUTH2", `Login efetuado com sucesso para o usuário: ${foundUser.name}`);
+  res.json({ success: true, user: foundUser });
+});
+
 
 // ==================== CONFIGURAÇÃO DO VITE / PRODUÇÃO ====================
 
@@ -1069,6 +1338,42 @@ async function syncDatabaseWithSupabase() {
       }
     }
 
+    // 3.5 Tenta recuperar e testar a tabela de bank_users
+    const { data: dbUsers, error: bankUsersError } = await supabase
+      .from("bank_users")
+      .select("*");
+
+    if (bankUsersError) {
+      if (bankUsersError.message?.includes("relation") || bankUsersError.message?.includes("does not exist") || bankUsersError.message?.includes("schema cache")) {
+        tableStatus.bank_users = false;
+        addLog("INFO", "SYSTEM", "A tabela 'bank_users' não foi criada no Supabase ainda. Usando banco em memória local.");
+      } else {
+        throw bankUsersError;
+      }
+    } else if (dbUsers) {
+      addLog("INFO", "SYSTEM", `Recuperados ${dbUsers.length} usuários cadastrados do Supabase.`);
+      if (dbUsers.length > 0) {
+        serverUsers = dbUsers.map((u: any) => ({
+          name: u.name,
+          cpf: u.cpf,
+          agency: u.agency,
+          accountNumber: u.accountNumber,
+          bankName: u.bankName,
+          balance: Number(u.balance),
+          creditCardInvoice: Number(u.creditCardInvoice),
+          creditCardLimit: Number(u.creditCardLimit),
+          password: u.password,
+          transactionPassword: u.transactionPassword
+        }));
+
+        dbUsers.forEach((u: any) => {
+          if (u.cpf) {
+            authorizedCPFs.add(u.cpf.replace(/\D/g, ""));
+          }
+        });
+      }
+    }
+
     // 4. Auto-seeding: Se as tabelas existirem, garante que nossos usuários padrão (Pedro Gabriel e Maria Sidney) existam nelas
     if (tableStatus.serpro_database && tableStatus.authorized_cpfs) {
       addLog("INFO", "SYSTEM", "Atualizando/semeando tabelas do Supabase com usuários padrão...");
@@ -1095,6 +1400,31 @@ async function syncDatabaseWithSupabase() {
             });
         } catch (e) {
           // Silenciosamente falha caso o schema ou tabelas não estejam criados
+        }
+      }
+    }
+
+    // Se a tabela bank_users existir e estiver vazia, faz o seed dos usuários padrão
+    if (tableStatus.bank_users && (!dbUsers || dbUsers.length === 0)) {
+      addLog("INFO", "SYSTEM", "Semeando tabela 'bank_users' no Supabase com usuários iniciais...");
+      for (const u of serverUsers) {
+        try {
+          await supabase
+            .from("bank_users")
+            .upsert({
+              cpf: u.cpf,
+              name: u.name,
+              agency: u.agency,
+              accountNumber: u.accountNumber,
+              bankName: u.bankName,
+              balance: u.balance,
+              creditCardInvoice: u.creditCardInvoice,
+              creditCardLimit: u.creditCardLimit,
+              password: u.password,
+              transactionPassword: u.transactionPassword
+            });
+        } catch (e) {
+          addLog("WARN", "SYSTEM", `Falha ao semear usuário ${u.name} no Supabase.`);
         }
       }
     }
