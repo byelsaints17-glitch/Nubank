@@ -622,15 +622,17 @@ export default function HomeView({
 
             {/* Logout button */}
             {onLogout && (
-              <button 
-                onClick={() => {
-                  setProfileOpen(false);
-                  onLogout();
-                }}
-                className="w-full mt-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
-              >
-                Sair do aplicativo
-              </button>
+              <div className="flex justify-center mt-6">
+                <button 
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onLogout();
+                  }}
+                  className="text-red-400 hover:text-red-300 text-xs font-extrabold uppercase tracking-widest cursor-pointer hover:underline transition-all"
+                >
+                  Sair da Conta
+                </button>
+              </div>
             )}
 
           </div>

@@ -135,7 +135,7 @@ const PRESET_CLEAN: { user: BankUser; recipient: BankRecipient; tx: TransactionD
   recipient: {
     name: 'Destinatário',
     cpf: '000.000.000-00',
-    bankName: 'Banco do Brasil S.A.',
+    bankName: 'Nu Pagamentos S.A.',
     agency: '0001',
     accountNumber: '2222222-2',
     pixKey: 'contato@email.com'
@@ -216,14 +216,100 @@ const INITIAL_USERS: BankUser[] = [
 
 export default function App() {
   // Database of users that can be identified by CPF
-  const [usersDatabase, setUsersDatabase] = useState<BankUser[]>(INITIAL_USERS);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [usersDatabase, setUsersDatabase] = useState<BankUser[]>(() => {
+    const saved = localStorage.getItem('nubank_users_database');
+    return saved ? JSON.parse(saved) : INITIAL_USERS;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const saved = localStorage.getItem('nubank_is_authenticated');
+    return saved === 'true';
+  });
 
   // Global active banking models
-  const [user, setUser] = useState<BankUser>(INITIAL_USERS[0]); // Default to Pedro Gabriel dos Santos Silva
-  const [recipient, setRecipient] = useState<BankRecipient>(PRESET_RECEIPT.recipient);
-  const [transaction, setTransaction] = useState<TransactionDetails>(PRESET_RECEIPT.tx);
-  const [history, setHistory] = useState<StatementItem[]>(PRESET_RECEIPT.history);
+  const [user, setUser] = useState<BankUser>(() => {
+    const saved = localStorage.getItem('nubank_active_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return INITIAL_USERS[0];
+  });
+  const [recipient, setRecipient] = useState<BankRecipient>(() => {
+    const saved = localStorage.getItem('nubank_active_recipient');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return PRESET_RECEIPT.recipient;
+  });
+  const [transaction, setTransaction] = useState<TransactionDetails>(() => {
+    const saved = localStorage.getItem('nubank_active_transaction');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return PRESET_RECEIPT.tx;
+  });
+  const [history, setHistory] = useState<StatementItem[]>(() => {
+    const saved = localStorage.getItem('nubank_active_history');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return PRESET_RECEIPT.history;
+  });
+
+  const [comprovantes, setComprovantes] = useState<any[]>(() => {
+    const saved = localStorage.getItem('nubank_comprovantes');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  // Persist state changes in localStorage
+  useEffect(() => {
+    localStorage.setItem('nubank_active_user', JSON.stringify(user));
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_users_database', JSON.stringify(usersDatabase));
+  }, [usersDatabase]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_is_authenticated', String(isAuthenticated));
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_active_recipient', JSON.stringify(recipient));
+    if (user && user.cpf) {
+      localStorage.setItem(`nubank_recipient_${user.cpf.replace(/\D/g, '')}`, JSON.stringify(recipient));
+    }
+  }, [recipient, user]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_active_transaction', JSON.stringify(transaction));
+    if (user && user.cpf) {
+      localStorage.setItem(`nubank_transaction_${user.cpf.replace(/\D/g, '')}`, JSON.stringify(transaction));
+    }
+  }, [transaction, user]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_active_history', JSON.stringify(history));
+    if (user && user.cpf) {
+      localStorage.setItem(`nubank_history_${user.cpf.replace(/\D/g, '')}`, JSON.stringify(history));
+    }
+  }, [history, user]);
+
+  useEffect(() => {
+    localStorage.setItem('nubank_comprovantes', JSON.stringify(comprovantes));
+  }, [comprovantes]);
 
   // Interface toggles
   const [hideBalance, setHideBalance] = useState<boolean>(false);
@@ -237,28 +323,106 @@ export default function App() {
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('500.00');
 
-  // Automatically lookup and resolve recipient details if their CPF matches any user in our database
-  useEffect(() => {
-    const cleanedCpf = recipient.cpf.trim();
-    if (cleanedCpf.length === 14) {
-      const matched = usersDatabase.find(u => u.cpf === cleanedCpf);
-      if (matched) {
-        setRecipient(prev => ({
-          ...prev,
-          name: matched.name,
-          bankName: matched.bankName,
-          agency: matched.agency,
-          accountNumber: matched.accountNumber,
-          pixKey: matched.cpf
-        }));
-      }
-    }
-  }, [recipient.cpf, usersDatabase]);
-
   // Synchronize changes to active user back to our dynamic users database
   useEffect(() => {
     setUsersDatabase(prev => prev.map(u => u.cpf === user.cpf ? user : u));
   }, [user]);
+
+  // When user.cpf changes, load the correct state for this user from localStorage or defaults
+  useEffect(() => {
+    if (user && user.cpf) {
+      const cleanCpf = user.cpf.replace(/\D/g, '');
+      
+      // Load history
+      const savedHistory = localStorage.getItem(`nubank_history_${cleanCpf}`);
+      let userHistory: StatementItem[] = [];
+      if (savedHistory) {
+        try {
+          userHistory = JSON.parse(savedHistory);
+        } catch (e) {}
+      } else {
+        if (user.cpf === PRESET_RECEIPT.user.cpf) {
+          userHistory = PRESET_RECEIPT.history;
+        } else if (user.cpf === PRESET_GABRIELA.user.cpf) {
+          userHistory = PRESET_GABRIELA.history;
+        } else {
+          userHistory = [];
+        }
+      }
+      setHistory(userHistory);
+
+      // Load active transaction
+      const savedTx = localStorage.getItem(`nubank_transaction_${cleanCpf}`);
+      if (savedTx) {
+        try {
+          setTransaction(JSON.parse(savedTx));
+        } catch (e) {}
+      } else {
+        if (user.cpf === PRESET_RECEIPT.user.cpf) {
+          setTransaction(PRESET_RECEIPT.tx);
+        } else if (user.cpf === PRESET_GABRIELA.user.cpf) {
+          setTransaction(PRESET_GABRIELA.tx);
+        }
+      }
+
+      // Load active recipient
+      const savedRecipient = localStorage.getItem(`nubank_recipient_${cleanCpf}`);
+      if (savedRecipient) {
+        try {
+          setRecipient(JSON.parse(savedRecipient));
+        } catch (e) {}
+      } else {
+        if (user.cpf === PRESET_RECEIPT.user.cpf) {
+          setRecipient(PRESET_RECEIPT.recipient);
+        } else if (user.cpf === PRESET_GABRIELA.user.cpf) {
+          setRecipient(PRESET_GABRIELA.recipient);
+        }
+      }
+    }
+  }, [user.cpf]);
+
+  // Load transactions/comprovantes from Supabase/Server database for the current user
+  useEffect(() => {
+    if (user && user.cpf) {
+      const userCpfClean = user.cpf.replace(/\D/g, '');
+      fetch(`/api/comprovantes?userCpf=${userCpfClean}`)
+        .then(res => {
+          if (!res.ok) throw new Error('API failed');
+          return res.json();
+        })
+        .then((data: any[]) => {
+          if (data && data.length > 0) {
+            // Update local state 'comprovantes' by merging server data
+            setComprovantes(prev => {
+              const combined = [...data, ...prev];
+              return combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+            });
+
+            const loadedHistory: StatementItem[] = data.map(item => ({
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              amount: item.amount,
+              date: item.date,
+              time: item.time,
+              type: item.type,
+              incoming: item.incoming,
+              recipientName: item.recipientName,
+              senderName: item.senderName
+            }));
+            
+            setHistory(prev => {
+              const combined = [...loadedHistory, ...prev];
+              const unique = combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+              return unique;
+            });
+          }
+        })
+        .catch(err => {
+          console.warn('Erro ao carregar comprovantes do Supabase:', err);
+        });
+    }
+  }, [user.cpf]);
 
   // Trigger loading state for templates
   const handleLoadPreset = (type: 'receipt-example' | 'gabriela-example' | 'clean') => {
@@ -317,22 +481,116 @@ export default function App() {
 
     setHistory(prev => [newLog, ...prev]);
 
+    // Save to server / Supabase
+    const dbPayload = {
+      id: newLog.id,
+      userCpf: user.cpf,
+      title: newLog.title,
+      description: newLog.description,
+      amount: newLog.amount,
+      date: newLog.date,
+      time: newLog.time,
+      type: newLog.type,
+      incoming: newLog.incoming,
+      
+      senderName: user.name,
+      senderCpf: user.cpf,
+      senderBank: user.bankName,
+      senderAgency: user.agency,
+      senderAccountNumber: user.accountNumber,
+      
+      recipientName: finalRecipient.name,
+      recipientCpf: finalRecipient.cpf,
+      recipientBank: finalRecipient.bankName,
+      recipientAgency: finalRecipient.agency,
+      recipientAccountNumber: finalRecipient.accountNumber,
+      pixKey: finalRecipient.pixKey,
+      transactionId: txDetails.transactionId
+    };
+
+    setComprovantes(prev => {
+      const existingIndex = prev.findIndex(c => c.id === dbPayload.id);
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = dbPayload;
+        return updated;
+      } else {
+        return [dbPayload, ...prev];
+      }
+    });
+
+    fetch('/api/comprovantes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dbPayload)
+    }).catch(err => console.error('Erro ao salvar comprovante no Supabase:', err));
+
     // 4. Open Comprovante Screen
     setCurrentScreen('receipt');
   };
 
   // Add a manual statement record from Control Panel
   const handleAddManualStatementItem = (item: Omit<StatementItem, 'id'>) => {
+    const newId = 'manual_' + Date.now();
     const newLog: StatementItem = {
       ...item,
-      id: 'manual_' + Date.now()
+      id: newId
     };
     setHistory(prev => [newLog, ...prev]);
+
+    // Save to Supabase via server
+    const dbPayload = {
+      id: newLog.id,
+      userCpf: user.cpf,
+      title: newLog.title,
+      description: newLog.description,
+      amount: newLog.amount,
+      date: newLog.date,
+      time: newLog.time,
+      type: newLog.type,
+      incoming: newLog.incoming,
+      
+      senderName: newLog.incoming ? (newLog.senderName || 'OUTRO OPERADOR') : user.name,
+      senderCpf: newLog.incoming ? '***.***.***-**' : user.cpf,
+      senderBank: newLog.incoming ? 'BANCO EXTERNO' : user.bankName,
+      senderAgency: '0001',
+      senderAccountNumber: '12345-6',
+      
+      recipientName: newLog.incoming ? user.name : (newLog.recipientName || 'REMETENTE EXTERNO'),
+      recipientCpf: newLog.incoming ? user.cpf : '***.***.***-**',
+      recipientBank: newLog.incoming ? user.bankName : 'BANCO DESTINATÁRIO',
+      recipientAgency: '0001',
+      recipientAccountNumber: '12345-6',
+      pixKey: '***.***.***-**',
+      transactionId: `E30680829${newLog.date.replace(/-/g, '')}${Math.floor(100000 + Math.random() * 900000)}TX`
+    };
+
+    setComprovantes(prev => {
+      const existingIndex = prev.findIndex(c => c.id === dbPayload.id);
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = dbPayload;
+        return updated;
+      } else {
+        return [dbPayload, ...prev];
+      }
+    });
+
+    fetch('/api/comprovantes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dbPayload)
+    }).catch(err => console.error('Erro ao salvar manual:', err));
   };
 
   // Empty statement logs
   const handleClearStatementHistory = () => {
     setHistory([]);
+    setComprovantes([]);
+    const userCpfClean = user.cpf.replace(/\D/g, '');
+    fetch(`/api/comprovantes?userCpf=${userCpfClean}`, {
+      method: 'DELETE'
+    }).catch(err => console.error('Erro ao deletar comprovantes:', err));
   };
 
   // Confirm simulated deposit inside the device popup
@@ -363,6 +621,50 @@ export default function App() {
 
     setHistory(prev => [newLog, ...prev]);
     setDepositOpen(false);
+
+    // Save deposit to server/Supabase
+    const dbPayload = {
+      id: newLog.id,
+      userCpf: user.cpf,
+      title: newLog.title,
+      description: newLog.description,
+      amount: newLog.amount,
+      date: newLog.date,
+      time: newLog.time,
+      type: newLog.type,
+      incoming: newLog.incoming,
+      
+      senderName: 'Nubank Conveniado S.A.',
+      senderCpf: '***.***.***-**',
+      senderBank: 'NU PAGAMENTOS - IP',
+      senderAgency: '0001',
+      senderAccountNumber: '999999-9',
+      
+      recipientName: user.name,
+      recipientCpf: user.cpf,
+      recipientBank: user.bankName,
+      recipientAgency: user.agency,
+      recipientAccountNumber: user.accountNumber,
+      pixKey: user.cpf,
+      transactionId: `E30680829${newLog.date.replace(/-/g, '')}${Math.floor(100000 + Math.random() * 900000)}TX`
+    };
+
+    setComprovantes(prev => {
+      const existingIndex = prev.findIndex(c => c.id === dbPayload.id);
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = dbPayload;
+        return updated;
+      } else {
+        return [dbPayload, ...prev];
+      }
+    });
+
+    fetch('/api/comprovantes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dbPayload)
+    }).catch(err => console.error('Erro ao salvar depósito:', err));
   };
 
   return (
@@ -374,14 +676,6 @@ export default function App() {
         {/* Centered High-Fidelity App Shell */}
         <div className="w-full max-w-lg bg-white rounded-none sm:rounded-[36px] border border-transparent sm:border-neutral-200 shadow-none sm:shadow-xl overflow-hidden flex flex-col min-h-[740px] relative shrink-0">
           
-          <div className="bg-[#830AD1] px-5 py-3 flex items-center justify-between text-white text-[10px] font-bold select-none border-b border-white/10">
-            <span className="tracking-wide uppercase text-purple-100 font-display">NUBANK INTERATIVO</span>
-            <div className="flex items-center gap-1.5 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>SESSÃO PROTEGIDA</span>
-            </div>
-          </div>
-
           <div className="flex-1 flex flex-col relative bg-neutral-50 overflow-y-auto no-scrollbar">
             {/* If user is not logged in / identified, show the interactive identification portal */}
             {!isAuthenticated ? (
@@ -419,23 +713,103 @@ export default function App() {
                     onNavigate={(screen) => setCurrentScreen(screen)}
                     onUpdateUser={(updated) => setUser(prev => ({ ...prev, ...updated }))}
                     onSelectTransaction={(item) => {
-                      // Reconstruct transaction details from statement log click
-                      const txDetails: TransactionDetails = {
+                      // Reconstruct default transaction details from statement log click
+                      const defaultTx: TransactionDetails = {
                         amount: item.amount,
                         type: item.type,
-                        date: transaction.date, // defaults to active config date/time
+                        date: item.date,
                         time: item.time,
-                        transactionId: transaction.transactionId
+                        transactionId: 'E30680829' + Date.now() + 'TX'
                       };
-                      setTransaction(txDetails);
                       
-                      // Temporary recipient update for clicking matching receipt
-                      if (item.recipientName) {
-                        setRecipient(prev => ({ ...prev, name: item.recipientName || prev.name }));
-                      } else if (item.senderName) {
-                        setRecipient(prev => ({ ...prev, name: item.senderName || prev.name }));
-                      }
-                      setCurrentScreen('receipt');
+                      // Try fetching authentic receipt details from database
+                      const userCpfClean = user.cpf.replace(/\D/g, '');
+                      fetch(`/api/comprovantes?userCpf=${userCpfClean}`)
+                        .then(res => {
+                          if (!res.ok) throw new Error('API error');
+                          return res.json();
+                        })
+                        .then((comprovantesData: any[]) => {
+                          if (comprovantesData && comprovantesData.length > 0) {
+                            setComprovantes(prev => {
+                              const combined = [...comprovantesData, ...prev];
+                              return combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+                            });
+                          }
+                          
+                          // Look up in server data or local state
+                          const matched = (comprovantesData || []).find(c => c.id === item.id) || comprovantes.find(c => c.id === item.id);
+                          if (matched) {
+                            // Perfect database or local cache match! Display the saved recipient/transaction details
+                            setTransaction({
+                              amount: matched.amount,
+                              type: matched.type,
+                              date: matched.date,
+                              time: matched.time,
+                              transactionId: matched.transactionId || defaultTx.transactionId
+                            });
+                            setRecipient({
+                              name: matched.recipientName || 'OUTRO OPERADOR',
+                              cpf: matched.recipientCpf || '***.***.***-**',
+                              bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
+                              agency: matched.recipientAgency || '0001',
+                              accountNumber: matched.recipientAccountNumber || '12345-6',
+                              pixKey: matched.pixKey || '***.***.***-**'
+                            });
+                          } else {
+                            // Fallback if not found anywhere (or standard onboarding logs)
+                            setTransaction(defaultTx);
+                            if (item.recipientName) {
+                              setRecipient(prev => ({
+                                ...prev,
+                                name: item.recipientName || prev.name,
+                                cpf: '***.***.***-**',
+                                bankName: 'NU PAGAMENTOS - IP',
+                                agency: '0001',
+                                accountNumber: '12345-6',
+                                pixKey: '***.***.***-**'
+                              }));
+                            } else if (item.senderName) {
+                              setRecipient(prev => ({
+                                ...prev,
+                                name: item.senderName || prev.name,
+                                cpf: '***.***.***-**',
+                                bankName: 'NU PAGAMENTOS - IP',
+                                agency: '0001',
+                                accountNumber: '12345-6',
+                                pixKey: '***.***.***-**'
+                              }));
+                            }
+                          }
+                          setCurrentScreen('receipt');
+                        })
+                        .catch(() => {
+                          // Fallback to local state if server fails
+                          const matched = comprovantes.find(c => c.id === item.id);
+                          if (matched) {
+                            setTransaction({
+                              amount: matched.amount,
+                              type: matched.type,
+                              date: matched.date,
+                              time: matched.time,
+                              transactionId: matched.transactionId || defaultTx.transactionId
+                            });
+                            setRecipient({
+                              name: matched.recipientName || 'OUTRO OPERADOR',
+                              cpf: matched.recipientCpf || '***.***.***-**',
+                              bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
+                              agency: matched.recipientAgency || '0001',
+                              accountNumber: matched.recipientAccountNumber || '12345-6',
+                              pixKey: matched.pixKey || '***.***.***-**'
+                            });
+                          } else {
+                            setTransaction(defaultTx);
+                            if (item.recipientName) {
+                              setRecipient(prev => ({ ...prev, name: item.recipientName || prev.name }));
+                            }
+                          }
+                          setCurrentScreen('receipt');
+                        });
                     }}
                     onOpenDeposit={() => setDepositOpen(true)}
                   />
@@ -453,6 +827,7 @@ export default function App() {
                   <MakePixView 
                     user={user}
                     usersDatabase={usersDatabase}
+                    recipient={recipient}
                     onBack={() => setCurrentScreen('home')}
                     onSendPix={handleSendPix}
                   />

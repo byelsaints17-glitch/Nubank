@@ -27,8 +27,11 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
 
   // Recovery states
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [recoveryCpf, setRecoveryCpf] = useState('');
+  const [recoveryCpfError, setRecoveryCpfError] = useState('');
   const [recoveryPhone, setRecoveryPhone] = useState('');
-  const [recoveryStep, setRecoveryStep] = useState<'phone' | 'sending' | 'code' | 'display'>('phone');
+  const [recoveryStep, setRecoveryStep] = useState<'cpf' | 'phone' | 'sending' | 'code' | 'display'>('cpf');
+  const [recoveryUser, setRecoveryUser] = useState<BankUser | null>(null);
   const [sentCode, setSentCode] = useState('');
   const [enteredCode, setEnteredCode] = useState('');
   const [recoveryPhoneError, setRecoveryPhoneError] = useState('');
@@ -230,14 +233,55 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
             Esqueci minha senha
           </h2>
           <p className="text-xs text-neutral-500 mb-6 font-medium">
-            Recuperação de conta para <span className="font-bold text-neutral-800">{matchedUser?.name || 'Cliente'}</span>
+            Recuperação de conta para <span className="font-bold text-[#830AD1]">{recoveryUser?.name || matchedUser?.name || 'Cliente'}</span>
           </p>
+
+          {recoveryStep === 'cpf' && (
+            <div className="flex flex-col gap-6 animate-scale-up">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-neutral-500">
+                  Informe seu CPF
+                </label>
+                <input
+                  type="text"
+                  maxLength={14}
+                  placeholder="000.000.000-00"
+                  value={recoveryCpf}
+                  onChange={(e) => {
+                    setRecoveryCpf(formatCpf(e.target.value));
+                    setRecoveryCpfError('');
+                  }}
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+                />
+                {recoveryCpfError && (
+                  <span className="text-xs text-rose-500 font-semibold">{recoveryCpfError}</span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const cleanedCpf = recoveryCpf.trim();
+                  const found = usersDatabase.find(u => u.cpf === cleanedCpf);
+                  if (found) {
+                    setRecoveryUser(found);
+                    setRecoveryStep('phone');
+                  } else {
+                    setRecoveryCpfError('Este CPF não foi encontrado em nosso banco de dados. Digite um CPF válido.');
+                  }
+                }}
+                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Buscar Conta
+              </button>
+            </div>
+          )}
 
           {recoveryStep === 'phone' && (
             <div className="flex flex-col gap-6 animate-scale-up">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-neutral-500">
-                  Número de Celular
+                  Número de Celular cadastrado
                 </label>
                 <input
                   type="text"
@@ -273,7 +317,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 }}
                 className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                Receber Código de Recuperação
+                Receber Código de Recuperação por SMS
               </button>
             </div>
           )}
@@ -290,7 +334,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
               {/* Test helper banner */}
               <div className="bg-purple-50/80 border border-purple-100 p-4 rounded-2xl flex flex-col gap-1.5 text-xs">
                 <span className="font-bold text-[#830AD1] flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Simulador de SMS Recebido
+                  <Sparkles className="w-3.5 h-3.5" /> SMS Recebido com Sucesso!
                 </span>
                 <p className="text-neutral-600 leading-normal">
                   Código de segurança de teste enviado para <span className="font-bold text-neutral-800">{recoveryPhone}</span>:
@@ -302,7 +346,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-neutral-500">
-                  Código de Verificação
+                  Código de Verificação de 4 dígitos
                 </label>
                 <input
                   type="text"
@@ -356,13 +400,13 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-neutral-500">Senha do App:</span>
                     <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
-                      {matchedUser?.password}
+                      {recoveryUser?.password || matchedUser?.password}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-neutral-500">Senha do Pix (4 dígitos):</span>
                     <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
-                      {matchedUser?.transactionPassword}
+                      {recoveryUser?.transactionPassword || matchedUser?.transactionPassword}
                     </span>
                   </div>
                 </div>
@@ -371,8 +415,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
               <button
                 type="button"
                 onClick={() => {
-                  if (matchedUser) {
-                    setPassword(matchedUser.password); // Autofill
+                  const targetUser = recoveryUser || matchedUser;
+                  if (targetUser) {
+                    setCpf(targetUser.cpf);
+                    setPassword(targetUser.password); // Autofill
                   }
                   setIsRecoveryMode(false);
                 }}
@@ -427,6 +473,26 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 onChange={handleCpfChange}
                 className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
               />
+              {!matchedUser && (
+                <div className="flex justify-end mt-1 text-[11px] font-medium">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRecoveryMode(true);
+                      setRecoveryStep('cpf');
+                      setRecoveryCpf(cpf);
+                      setRecoveryCpfError('');
+                      setRecoveryPhone('');
+                      setEnteredCode('');
+                      setRecoveryPhoneError('');
+                      setRecoveryCodeError('');
+                    }}
+                    className="text-[#830AD1] hover:text-[#7209B7] font-bold hover:underline cursor-pointer"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Identified User State & Password Field */}
@@ -505,7 +571,9 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                       type="button"
                       onClick={() => {
                         setIsRecoveryMode(true);
-                        setRecoveryStep('phone');
+                        setRecoveryStep('cpf');
+                        setRecoveryCpf(cpf);
+                        setRecoveryCpfError('');
                         setRecoveryPhone('');
                         setEnteredCode('');
                         setRecoveryPhoneError('');

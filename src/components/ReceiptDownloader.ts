@@ -23,7 +23,7 @@ export function downloadReceiptAsImage(
     const canvas = document.createElement('canvas');
     // High DPI rendering for crisp text
     canvas.width = 650;
-    canvas.height = 1150; // High vertical layout matching real Nubank voucher screenshots
+    canvas.height = 1300; // High vertical layout matching real Nubank voucher screenshots
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -200,12 +200,16 @@ export function downloadReceiptAsImage(
     drawRow('Nome', recipientName.toUpperCase(), 'details');
     drawRow('CPF', maskCpfStr(recipientCpf), 'details');
     drawRow('Instituição', recipientBank.toUpperCase(), 'details');
+    if (recipientAgency) drawRow('Agência', recipientAgency, 'details');
+    if (recipientAccount) drawRow('Conta', recipientAccount, 'details');
 
     // 5. Origin Section
     drawSectionHeader('Origem');
     drawRow('Nome', senderName.toUpperCase(), 'details');
     drawRow('Instituição', senderBank ? senderBank.toUpperCase() : 'NU PAGAMENTOS - IP', 'details');
     drawRow('CPF', maskCpfStr(senderCpf), 'details');
+    if (senderAgency) drawRow('Agência', senderAgency, 'details');
+    if (senderAccount) drawRow('Conta', senderAccount, 'details');
 
     // 6. Footer Gray Container Block
     y += 20;

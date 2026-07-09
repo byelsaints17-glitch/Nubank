@@ -10,11 +10,12 @@ import jsQR from 'jsqr';
 interface MakePixViewProps {
   user: BankUser;
   usersDatabase: BankUser[];
+  recipient: BankRecipient;
   onBack: () => void;
   onSendPix: (amount: number, type: 'Pix' | 'Transferência', recipient: BankRecipient) => void;
 }
 
-export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: MakePixViewProps) {
+export default function MakePixView({ user, usersDatabase, recipient, onBack, onSendPix }: MakePixViewProps) {
   // Steps: 'key' | 'amount' | 'password' | 'sending' | 'success'
   const [pixStep, setPixStep] = useState<'key' | 'amount' | 'password' | 'sending' | 'success'>('key');
   
@@ -47,13 +48,17 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
   const [showSerproLog, setShowSerproLog] = useState(false);
   const [lastSearchedCPF, setLastSearchedCPF] = useState('');
 
+  // Track if user manually customized recipient details
+  const [userHasEdited, setUserHasEdited] = useState(false);
+
   // Key identification step states
-  const [pixKeyInput, setPixKeyInput] = useState('');
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientBank, setRecipientBank] = useState('NU PAGAMENTOS - IP');
-  const [recipientAgency, setRecipientAgency] = useState('0001');
-  const [recipientAccount, setRecipientAccount] = useState('');
-  const [isKeyIdentified, setIsKeyIdentified] = useState(false);
+  const [pixKeyInput, setPixKeyInput] = useState(recipient?.pixKey || '');
+  const [selectedKeyType, setSelectedKeyType] = useState<'cpf' | 'telefone' | 'copiacola' | 'outros'>('cpf');
+  const [recipientName, setRecipientName] = useState(recipient?.name || '');
+  const [recipientBank, setRecipientBank] = useState(recipient?.bankName || 'NU PAGAMENTOS - IP');
+  const [recipientAgency, setRecipientAgency] = useState(recipient?.agency || '0001');
+  const [recipientAccount, setRecipientAccount] = useState(recipient?.accountNumber || '');
+  const [isKeyIdentified, setIsKeyIdentified] = useState(!!recipient?.name);
   const [validationError, setValidationError] = useState('');
 
   // BrasilAPI Banks list and Search integration
@@ -479,12 +484,45 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
     return value;
   };
 
-  const handleKeyInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-format Phone input
+  const formatPhone = (val: string) => {
+    const numbers = val.replace(/\D/g, '');
+    let formatted = numbers;
+    if (numbers.length > 0) {
+      formatted = `(${numbers.slice(0, 2)}`;
+    }
+    if (numbers.length > 2) {
+      formatted = `${formatted}) ${numbers.slice(2, 7)}`;
+    }
+    if (numbers.length > 7) {
+      formatted = `${formatted}-${numbers.slice(7, 11)}`;
+    }
+    return formatted;
+  };
+
+  const handleKeyInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const rawValue = e.target.value;
-    const formatted = formatCpf(rawValue);
-    setPixKeyInput(formatted);
+    if (selectedKeyType === 'cpf') {
+      setPixKeyInput(formatCpf(rawValue));
+    } else if (selectedKeyType === 'telefone') {
+      setPixKeyInput(formatPhone(rawValue));
+    } else {
+      setPixKeyInput(rawValue);
+    }
     setValidationError('');
   };
+
+  // Reset userHasEdited when key type changes
+  useEffect(() => {
+    setUserHasEdited(false);
+  }, [selectedKeyType]);
+
+  // Reset userHasEdited when Pix key is cleared
+  useEffect(() => {
+    if (!pixKeyInput.trim()) {
+      setUserHasEdited(false);
+    }
+  }, [pixKeyInput]);
 
   // Perform Pix identification lookup
   useEffect(() => {
@@ -494,11 +532,43 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
       return;
     }
 
+    if (userHasEdited) {
+      return;
+    }
+
     const normalized = cleaned.toLowerCase();
     const cleanDigits = cleaned.replace(/\D/g, '');
 
-    // 1. If it's a CPF (11 digits), trigger simple database lookup
-    if (cleanDigits.length === 11) {
+    // A. Pix Cópia e Cola Parsing Integration
+    if (selectedKeyType === 'copiacola') {
+      if (cleaned.startsWith('000201') || cleaned.includes('br.gov.bcb.pix')) {
+        const parsed = parsePixEMV(cleaned);
+        if (parsed.key) {
+          setRecipientName(parsed.name || 'JULIANA MELO MELO');
+          setRecipientBank(parsed.key.includes('@') ? 'C6 Bank S.A.' : 'NU PAGAMENTOS - IP');
+          setRecipientAgency('0001');
+          setRecipientAccount('1234567-8');
+          setIsKeyIdentified(true);
+          
+          if (parsed.amount) {
+            setAmountStr(parsed.amount);
+          }
+          return;
+        }
+      }
+    }
+
+    // B. CPF Lookup via Serpro / Local cache
+    if (selectedKeyType === 'cpf' && cleanDigits.length === 11) {
+      if (lastSearchedCPF !== cleanDigits && !isSearchingCPF) {
+        setLastSearchedCPF(cleanDigits);
+        consultarChavePix(cleanDigits);
+      }
+      return;
+    }
+
+    // C. Phone / Celular Lookup via Serpro / Local cache
+    if (selectedKeyType === 'telefone' && cleanDigits.length >= 10) {
       if (lastSearchedCPF !== cleanDigits && !isSearchingCPF) {
         setLastSearchedCPF(cleanDigits);
         consultarChavePix(cleanDigits);
@@ -560,7 +630,8 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
       normalized.includes('manoel') || 
       cleanDigits.includes('965814') ||
       cleanDigits.includes('74988440897') ||
-      cleaned === '+5574988440897';
+      cleaned === '+5574988440897' ||
+      cleanDigits === '74988440897';
 
     if (isFrancisco) {
       setRecipientName('FRANCISCO MANOEL DA SILVA');
@@ -593,7 +664,7 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
 
     // Otherwise, keep as unidentified so they can customize
     setIsKeyIdentified(false);
-  }, [pixKeyInput, usersDatabase, banks, lastSearchedCPF, isSearchingCPF]);
+  }, [pixKeyInput, selectedKeyType, usersDatabase, banks, lastSearchedCPF, isSearchingCPF]);
 
   const handleAdvanceFromKey = () => {
     if (!pixKeyInput.trim()) {
@@ -746,16 +817,66 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
 
           {activeTab === 'key' ? (
             /* Pix Key Search Input */
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Chave Pix ou CPF</label>
-              <div className="relative flex items-center">
-                <input 
-                  type="text" 
-                  value={pixKeyInput}
-                  onChange={handleKeyInputChange}
-                  placeholder="Ex: 110.542.545-24 ou Nome"
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-sm font-bold text-neutral-900 transition-all font-mono placeholder:font-sans"
-                />
+            <div className="flex flex-col gap-3">
+              {/* Key Type Pills */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar select-none">
+                {[
+                  { id: 'cpf', label: 'CPF' },
+                  { id: 'telefone', label: 'Celular' },
+                  { id: 'copiacola', label: 'Cópia e Cola' },
+                  { id: 'outros', label: 'E-mail / Outro' }
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedKeyType(t.id as any);
+                      setPixKeyInput('');
+                      setValidationError('');
+                      setIsKeyIdentified(false);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                      selectedKeyType === t.id
+                        ? 'bg-[#830AD1] text-white shadow-sm scale-[1.02]'
+                        : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200/60'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                  {selectedKeyType === 'cpf' && 'CPF do Destinatário'}
+                  {selectedKeyType === 'telefone' && 'Celular do Destinatário'}
+                  {selectedKeyType === 'copiacola' && 'Código Pix Cópia e Cola'}
+                  {selectedKeyType === 'outros' && 'Chave E-mail ou Aleatória'}
+                </label>
+                
+                <div className="relative flex items-center w-full">
+                  {selectedKeyType === 'copiacola' ? (
+                    <textarea 
+                      value={pixKeyInput}
+                      onChange={handleKeyInputChange}
+                      placeholder="Cole o código Pix completo (começa com 000201...)"
+                      rows={3}
+                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-xs font-bold text-neutral-900 transition-all font-mono placeholder:font-sans resize-none"
+                    />
+                  ) : (
+                    <input 
+                      type="text" 
+                      value={pixKeyInput}
+                      onChange={handleKeyInputChange}
+                      placeholder={
+                        selectedKeyType === 'cpf' ? 'Ex: 110.542.545-24' :
+                        selectedKeyType === 'telefone' ? 'Ex: (74) 98844-0897' :
+                        'Ex: pix@empresa.com.br'
+                      }
+                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-sm font-bold text-neutral-900 transition-all font-mono placeholder:font-sans"
+                    />
+                  )}
+                </div>
               </div>
 
               {isSearchingCPF && (
@@ -913,7 +1034,10 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
                 <input 
                   type="text" 
                   value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
+                  onChange={(e) => {
+                    setRecipientName(e.target.value);
+                    setUserHasEdited(true);
+                  }}
                   placeholder="Nome do destinatário"
                   className="bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-bold text-neutral-800 focus:outline-none focus:border-[#830AD1]"
                 />
@@ -930,6 +1054,7 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '');
                       setBankSearchCode(val);
+                      setUserHasEdited(true);
                       if (val.length >= 1) {
                         handleLookupBankByCode(val);
                       }
@@ -945,6 +1070,7 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
                     value={recipientBank}
                     onChange={(e) => {
                       setRecipientBank(e.target.value);
+                      setUserHasEdited(true);
                       // Sync search code field if possible
                       const matched = banks.find(b => b.fullName === e.target.value || b.name === e.target.value);
                       if (matched && matched.code !== null && matched.code !== undefined) {
@@ -984,7 +1110,10 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
                   <input 
                     type="text" 
                     value={recipientAgency}
-                    onChange={(e) => setRecipientAgency(e.target.value)}
+                    onChange={(e) => {
+                      setRecipientAgency(e.target.value);
+                      setUserHasEdited(true);
+                    }}
                     placeholder="0001"
                     className="bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-bold text-neutral-800 focus:outline-none focus:border-[#830AD1] font-mono"
                   />
@@ -995,7 +1124,10 @@ export default function MakePixView({ user, usersDatabase, onBack, onSendPix }: 
                   <input 
                     type="text" 
                     value={recipientAccount}
-                    onChange={(e) => setRecipientAccount(e.target.value)}
+                    onChange={(e) => {
+                      setRecipientAccount(e.target.value);
+                      setUserHasEdited(true);
+                    }}
                     placeholder="Ex: 12345-6"
                     className="bg-white border border-neutral-200 rounded-xl px-3 py-2 text-xs font-bold text-neutral-800 focus:outline-none focus:border-[#830AD1] font-mono"
                   />
