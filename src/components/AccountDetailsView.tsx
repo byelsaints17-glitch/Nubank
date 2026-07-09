@@ -10,7 +10,7 @@ interface AccountDetailsViewProps {
   history: StatementItem[];
   hideBalance: boolean;
   onBack: () => void;
-  onNavigate: (screen: 'home' | 'account' | 'card' | 'pix') => void;
+  onNavigate: (screen: 'home' | 'account' | 'card' | 'pix' | 'extrato') => void;
   onSelectTransaction: (item: StatementItem) => void;
   onOpenDeposit: () => void;
   onUpdateUser?: (updated: Partial<BankUser>) => void;
@@ -206,7 +206,16 @@ export default function AccountDetailsView({
 
       {/* Statement History / Histórico Section */}
       <div className="mt-7 border-t border-neutral-100/80 pt-5 flex-1 flex flex-col">
-        <h3 className="text-base font-bold text-neutral-800 px-5 mb-3 font-display">Histórico</h3>
+        <div className="px-5 mb-3 flex items-center justify-between">
+          <h3 className="text-base font-bold text-neutral-800 font-display">Histórico</h3>
+          <button 
+            onClick={() => onNavigate('extrato')}
+            className="text-xs font-bold text-[#830AD1] hover:underline flex items-center gap-0.5"
+          >
+            Ver extrato
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
         
         {history.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-10 px-5 text-neutral-400 gap-2">

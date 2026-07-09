@@ -3,7 +3,8 @@ import {
   Eye, EyeOff, HelpCircle, Mail, ChevronRight, 
   CreditCard, DollarSign, Wallet, TrendingUp, 
   ArrowUpRight, Landmark, Receipt, Smartphone, ShieldAlert, Edit2,
-  ArrowUpDown, ShoppingBag, Barcode, Diamond, Coins, User, X
+  ArrowUpDown, ShoppingBag, Barcode, Diamond, Coins, User, X,
+  ScrollText
 } from 'lucide-react';
 import { BankUser } from '../types';
 
@@ -11,7 +12,7 @@ interface HomeViewProps {
   user: BankUser;
   hideBalance: boolean;
   setHideBalance: (hide: boolean) => void;
-  onNavigate: (screen: 'home' | 'account' | 'card' | 'pix') => void;
+  onNavigate: (screen: 'home' | 'account' | 'card' | 'pix' | 'extrato') => void;
   onLogout?: () => void;
   onUpdateUser?: (updated: Partial<BankUser>) => void;
 }
@@ -228,6 +229,19 @@ export default function HomeView({
             </div>
             <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
               Área Pix
+            </span>
+          </button>
+
+          {/* Action: Extrato */}
+          <button 
+            onClick={() => onNavigate('extrato')}
+            className="flex flex-col items-center gap-2.5 group cursor-pointer min-w-[72px]"
+          >
+            <div className="w-13 h-13 rounded-full bg-[#1c1c1e] group-hover:bg-neutral-800 flex items-center justify-center text-white active:scale-95 transition-all border border-neutral-800/65">
+              <ScrollText className="w-5 h-5 text-purple-400" />
+            </div>
+            <span className="text-[12px] font-bold text-neutral-200 text-center tracking-tight leading-3">
+              Extrato
             </span>
           </button>
 

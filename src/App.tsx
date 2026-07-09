@@ -8,6 +8,7 @@ import MakePixView from './components/MakePixView';
 import ReceiptView from './components/ReceiptView';
 import ControlPanel from './components/ControlPanel';
 import LoginView from './components/LoginView';
+import ExtratoView from './components/ExtratoView';
 import { BankUser, BankRecipient, TransactionDetails, StatementItem } from './types';
 
 // Initial prefilled presets to ensure instantaneous tactile onboarding
@@ -313,7 +314,7 @@ export default function App() {
 
   // Interface toggles
   const [hideBalance, setHideBalance] = useState<boolean>(false);
-  const [currentScreen, setCurrentScreen] = useState<'home' | 'account' | 'card' | 'pix' | 'receipt'>('home');
+  const [currentScreen, setCurrentScreen] = useState<'home' | 'account' | 'card' | 'pix' | 'receipt' | 'extrato'>('home');
   
   // Responsive workspace mode (for mobile / small tablets)
   // 'preview' shows the smartphone frame, 'edit' shows the control forms
@@ -667,6 +668,106 @@ export default function App() {
     }).catch(err => console.error('Erro ao salvar depósito:', err));
   };
 
+  const handleSelectTransaction = (item: StatementItem) => {
+    // Reconstruct default transaction details from statement log click
+    const defaultTx: TransactionDetails = {
+      amount: item.amount,
+      type: item.type,
+      date: item.date,
+      time: item.time,
+      transactionId: 'E30680829' + Date.now() + 'TX'
+    };
+    
+    // Try fetching authentic receipt details from database
+    const userCpfClean = user.cpf.replace(/\D/g, '');
+    fetch(`/api/comprovantes?userCpf=${userCpfClean}`)
+      .then(res => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((comprovantesData: any[]) => {
+        if (comprovantesData && comprovantesData.length > 0) {
+          setComprovantes(prev => {
+            const combined = [...comprovantesData, ...prev];
+            return combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+          });
+        }
+        
+        // Look up in server data or local state
+        const matched = (comprovantesData || []).find(c => c.id === item.id) || comprovantes.find(c => c.id === item.id);
+        if (matched) {
+          // Perfect database or local cache match! Display the saved recipient/transaction details
+          setTransaction({
+            amount: matched.amount,
+            type: matched.type,
+            date: matched.date,
+            time: matched.time,
+            transactionId: matched.transactionId || defaultTx.transactionId
+          });
+          setRecipient({
+            name: matched.recipientName || 'OUTRO OPERADOR',
+            cpf: matched.recipientCpf || '***.***.***-**',
+            bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
+            agency: matched.recipientAgency || '0001',
+            accountNumber: matched.recipientAccountNumber || '12345-6',
+            pixKey: matched.pixKey || '***.***.***-**'
+          });
+        } else {
+          // Fallback if not found anywhere (or standard onboarding logs)
+          setTransaction(defaultTx);
+          if (item.recipientName) {
+            setRecipient(prev => ({
+              ...prev,
+              name: item.recipientName || prev.name,
+              cpf: '***.***.***-**',
+              bankName: 'NU PAGAMENTOS - IP',
+              agency: '0001',
+              accountNumber: '12345-6',
+              pixKey: '***.***.***-**'
+            }));
+          } else if (item.senderName) {
+            setRecipient(prev => ({
+              ...prev,
+              name: item.senderName || prev.name,
+              cpf: '***.***.***-**',
+              bankName: 'NU PAGAMENTOS - IP',
+              agency: '0001',
+              accountNumber: '12345-6',
+              pixKey: '***.***.***-**'
+            }));
+          }
+        }
+        setCurrentScreen('receipt');
+      })
+      .catch(() => {
+        // Fallback to local state if server fails
+        const matched = comprovantes.find(c => c.id === item.id);
+        if (matched) {
+          setTransaction({
+            amount: matched.amount,
+            type: matched.type,
+            date: matched.date,
+            time: matched.time,
+            transactionId: matched.transactionId || defaultTx.transactionId
+          });
+          setRecipient({
+            name: matched.recipientName || 'OUTRO OPERADOR',
+            cpf: matched.recipientCpf || '***.***.***-**',
+            bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
+            agency: matched.recipientAgency || '0001',
+            accountNumber: matched.recipientAccountNumber || '12345-6',
+            pixKey: matched.pixKey || '***.***.***-**'
+          });
+        } else {
+          setTransaction(defaultTx);
+          if (item.recipientName) {
+            setRecipient(prev => ({ ...prev, name: item.recipientName || prev.name }));
+          }
+        }
+        setCurrentScreen('receipt');
+      });
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col font-sans select-none antialiased justify-center">
       
@@ -712,106 +813,19 @@ export default function App() {
                     onBack={() => setCurrentScreen('home')}
                     onNavigate={(screen) => setCurrentScreen(screen)}
                     onUpdateUser={(updated) => setUser(prev => ({ ...prev, ...updated }))}
-                    onSelectTransaction={(item) => {
-                      // Reconstruct default transaction details from statement log click
-                      const defaultTx: TransactionDetails = {
-                        amount: item.amount,
-                        type: item.type,
-                        date: item.date,
-                        time: item.time,
-                        transactionId: 'E30680829' + Date.now() + 'TX'
-                      };
-                      
-                      // Try fetching authentic receipt details from database
-                      const userCpfClean = user.cpf.replace(/\D/g, '');
-                      fetch(`/api/comprovantes?userCpf=${userCpfClean}`)
-                        .then(res => {
-                          if (!res.ok) throw new Error('API error');
-                          return res.json();
-                        })
-                        .then((comprovantesData: any[]) => {
-                          if (comprovantesData && comprovantesData.length > 0) {
-                            setComprovantes(prev => {
-                              const combined = [...comprovantesData, ...prev];
-                              return combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
-                            });
-                          }
-                          
-                          // Look up in server data or local state
-                          const matched = (comprovantesData || []).find(c => c.id === item.id) || comprovantes.find(c => c.id === item.id);
-                          if (matched) {
-                            // Perfect database or local cache match! Display the saved recipient/transaction details
-                            setTransaction({
-                              amount: matched.amount,
-                              type: matched.type,
-                              date: matched.date,
-                              time: matched.time,
-                              transactionId: matched.transactionId || defaultTx.transactionId
-                            });
-                            setRecipient({
-                              name: matched.recipientName || 'OUTRO OPERADOR',
-                              cpf: matched.recipientCpf || '***.***.***-**',
-                              bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
-                              agency: matched.recipientAgency || '0001',
-                              accountNumber: matched.recipientAccountNumber || '12345-6',
-                              pixKey: matched.pixKey || '***.***.***-**'
-                            });
-                          } else {
-                            // Fallback if not found anywhere (or standard onboarding logs)
-                            setTransaction(defaultTx);
-                            if (item.recipientName) {
-                              setRecipient(prev => ({
-                                ...prev,
-                                name: item.recipientName || prev.name,
-                                cpf: '***.***.***-**',
-                                bankName: 'NU PAGAMENTOS - IP',
-                                agency: '0001',
-                                accountNumber: '12345-6',
-                                pixKey: '***.***.***-**'
-                              }));
-                            } else if (item.senderName) {
-                              setRecipient(prev => ({
-                                ...prev,
-                                name: item.senderName || prev.name,
-                                cpf: '***.***.***-**',
-                                bankName: 'NU PAGAMENTOS - IP',
-                                agency: '0001',
-                                accountNumber: '12345-6',
-                                pixKey: '***.***.***-**'
-                              }));
-                            }
-                          }
-                          setCurrentScreen('receipt');
-                        })
-                        .catch(() => {
-                          // Fallback to local state if server fails
-                          const matched = comprovantes.find(c => c.id === item.id);
-                          if (matched) {
-                            setTransaction({
-                              amount: matched.amount,
-                              type: matched.type,
-                              date: matched.date,
-                              time: matched.time,
-                              transactionId: matched.transactionId || defaultTx.transactionId
-                            });
-                            setRecipient({
-                              name: matched.recipientName || 'OUTRO OPERADOR',
-                              cpf: matched.recipientCpf || '***.***.***-**',
-                              bankName: matched.recipientBank || 'NU PAGAMENTOS - IP',
-                              agency: matched.recipientAgency || '0001',
-                              accountNumber: matched.recipientAccountNumber || '12345-6',
-                              pixKey: matched.pixKey || '***.***.***-**'
-                            });
-                          } else {
-                            setTransaction(defaultTx);
-                            if (item.recipientName) {
-                              setRecipient(prev => ({ ...prev, name: item.recipientName || prev.name }));
-                            }
-                          }
-                          setCurrentScreen('receipt');
-                        });
-                    }}
+                    onSelectTransaction={handleSelectTransaction}
                     onOpenDeposit={() => setDepositOpen(true)}
+                  />
+                )}
+
+                {currentScreen === 'extrato' && (
+                  <ExtratoView 
+                    user={user}
+                    history={history}
+                    hideBalance={hideBalance}
+                    onBack={() => setCurrentScreen('home')}
+                    onSelectTransaction={handleSelectTransaction}
+                    onClearHistory={handleClearStatementHistory}
                   />
                 )}
 
