@@ -149,7 +149,7 @@ export default function ExtratoView({
 
       if (format === 'txt') {
         content += `==============================================\n`;
-        content += `       EXTRATO SIMULADO - NUBANK CLONE        \n`;
+        content += `       EXTRATO SIMULADO - PGBANK              \n`;
         content += `==============================================\n`;
         content += `Cliente: ${user.name}\n`;
         content += `CPF: ${user.cpf}\n`;
@@ -205,7 +205,7 @@ export default function ExtratoView({
       
       {/* Toast Alert Notification */}
       {showToast && (
-        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-[#830AD1] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-2 animate-fade-in">
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-neutral-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-2 animate-fade-in">
           <span>{toastMessage}</span>
           <button onClick={() => setShowToast(false)} className="text-white hover:text-neutral-200">
             <X className="w-3 h-3" />
@@ -231,14 +231,14 @@ export default function ExtratoView({
             className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors"
             title="Baixar Extrato TXT"
           >
-            <Download className="w-4 h-4 text-[#830AD1]" />
+            <Download className="w-4 h-4 text-neutral-800" />
           </button>
           <button 
             onClick={() => handleExportStatement('csv')}
             className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors"
             title="Baixar Extrato CSV Excel"
           >
-            <FileSpreadsheet className="w-4 h-4 text-[#830AD1]" />
+            <FileSpreadsheet className="w-4 h-4 text-neutral-800" />
           </button>
           <button className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors">
             <HelpCircle className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function ExtratoView({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por nome, valor ou tipo..."
-            className="w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white text-xs text-neutral-800 pl-10 pr-9 py-2.5 rounded-xl border border-neutral-200 focus:border-[#830AD1] focus:outline-none focus:ring-1 focus:ring-[#830AD1] transition-all"
+            className="w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white text-xs text-neutral-800 pl-10 pr-9 py-2.5 rounded-xl border border-neutral-200 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900 transition-all"
           />
           {searchQuery && (
             <button 
@@ -283,7 +283,7 @@ export default function ExtratoView({
               onClick={() => setActiveFilter(cap.id as any)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${
                 activeFilter === cap.id 
-                  ? 'bg-[#830AD1] border-[#830AD1] text-white shadow-sm' 
+                  ? 'bg-neutral-900 border-neutral-900 text-white shadow-sm' 
                   : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
               }`}
             >
@@ -330,7 +330,7 @@ export default function ExtratoView({
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="text-[#830AD1] font-bold text-xs mt-1 hover:underline"
+                className="text-neutral-900 font-bold text-xs mt-1 hover:underline"
               >
                 Limpar pesquisa
               </button>
@@ -399,7 +399,7 @@ export default function ExtratoView({
                         </span>
                         
                         {/* Interactive receipt tag */}
-                        <span className="text-[9px] font-extrabold text-[#830AD1] bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded-md border border-purple-100/50 uppercase tracking-wide">
+                        <span className="text-[9px] font-extrabold text-neutral-800 bg-neutral-100 hover:bg-neutral-200 px-2 py-0.5 rounded-md border border-neutral-200/50 uppercase tracking-wide">
                           Recibo
                         </span>
                       </div>

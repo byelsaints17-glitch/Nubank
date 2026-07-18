@@ -61,7 +61,7 @@ const PRESET_RECEIPT: { user: BankUser; recipient: BankRecipient; tx: Transactio
       time: '09:12:00',
       type: 'Depósito',
       incoming: true,
-      senderName: 'Nubank'
+      senderName: 'PGBANK'
     }
   ]
 };
@@ -845,6 +845,7 @@ export default function App() {
                     onNavigate={(screen) => setCurrentScreen(screen)}
                     onLogout={() => setIsAuthenticated(false)}
                     onUpdateUser={(updated) => setUser(prev => ({ ...prev, ...updated }))}
+                    onAddManualStatementItem={handleAddManualStatementItem}
                   />
                 )}
 

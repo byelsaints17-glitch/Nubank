@@ -20,7 +20,7 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
   const [pixStep, setPixStep] = useState<'key' | 'amount' | 'password' | 'sending' | 'success'>('key');
   
   // Tab control inside step 'key'
-  const [activeTab, setActiveTab] = useState<'key' | 'qrcode'>('key');
+  const [activeTab, setActiveTab] = useState<'key' | 'qrcode' | 'transfer'>('key');
   
   // QR Scanner / Camera states
   const [useCamera, setUseCamera] = useState(false);
@@ -667,7 +667,7 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
   }, [pixKeyInput, selectedKeyType, usersDatabase, banks, lastSearchedCPF, isSearchingCPF]);
 
   const handleAdvanceFromKey = () => {
-    if (!pixKeyInput.trim()) {
+    if (!pixKeyInput.trim() && activeTab !== 'transfer') {
       setValidationError('Por favor, informe uma Chave Pix ou CPF para identificação.');
       return;
     }
@@ -721,9 +721,9 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
           bankName: recipientBank,
           agency: recipientAgency,
           accountNumber: recipientAccount,
-          pixKey: pixKeyInput
+          pixKey: activeTab === 'transfer' ? '' : pixKeyInput
         };
-        onSendPix(parseFloat(amountStr), 'Pix', finalRecipient);
+        onSendPix(parseFloat(amountStr), activeTab === 'transfer' ? 'Transferência' : 'Pix', finalRecipient);
       }, 1000);
     }, 1500);
   };
@@ -788,14 +788,32 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
                 setActiveTab('key');
                 stopCamera();
               }}
-              className={`flex-1 pb-3 text-center text-xs font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 pb-3 text-center text-[11px] font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === 'key'
                   ? 'border-[#830AD1] text-[#830AD1] font-extrabold'
                   : 'border-transparent text-neutral-400 hover:text-neutral-600'
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
-              Chave Pix ou CPF
+              Chave Pix
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValidationError('');
+                setActiveTab('transfer');
+                stopCamera();
+                setPixKeyInput('');
+                setIsKeyIdentified(false);
+              }}
+              className={`flex-1 pb-3 text-center text-[11px] font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'transfer'
+                  ? 'border-[#830AD1] text-[#830AD1] font-extrabold'
+                  : 'border-transparent text-neutral-400 hover:text-neutral-600'
+              }`}
+            >
+              <Landmark className="w-3.5 h-3.5" />
+              Agência e Conta
             </button>
             <button
               type="button"
@@ -804,7 +822,7 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
                 setActiveTab('qrcode');
                 startCamera();
               }}
-              className={`flex-1 pb-3 text-center text-xs font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 pb-3 text-center text-[11px] font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === 'qrcode'
                   ? 'border-[#830AD1] text-[#830AD1] font-extrabold'
                   : 'border-transparent text-neutral-400 hover:text-neutral-600'
@@ -815,7 +833,7 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
             </button>
           </div>
 
-          {activeTab === 'key' ? (
+          {activeTab === 'key' && (
             /* Pix Key Search Input */
             <div className="flex flex-col gap-3">
               {/* Key Type Pills */}
@@ -919,7 +937,54 @@ export default function MakePixView({ user, usersDatabase, recipient, onBack, on
                 </div>
               )}
             </div>
-          ) : (
+          )}
+
+          {activeTab === 'transfer' && (
+            /* Agency & Account Transfer Input */
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                  CPF ou CNPJ do Favorecido (Identificação automática)
+                </label>
+                
+                <div className="relative flex items-center w-full">
+                  <input 
+                    type="text" 
+                    value={pixKeyInput}
+                    onChange={(e) => {
+                      setSelectedKeyType('cpf');
+                      handleKeyInputChange(e);
+                    }}
+                    placeholder="Ex: 110.542.545-24"
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 focus:border-[#830AD1] focus:outline-none rounded-xl text-sm font-bold text-neutral-900 transition-all font-mono placeholder:font-sans"
+                  />
+                </div>
+                <p className="text-[10.5px] text-neutral-500 leading-normal">
+                  💡 <strong>Identificação inteligente de contas:</strong> Digite o CPF acima para buscar os dados oficiais da conta do favorecido de forma automática! Caso não possua, basta digitar os dados diretamente nos campos bancários abaixo.
+                </p>
+              </div>
+
+              {isSearchingCPF && (
+                <div className="flex items-center gap-2 bg-purple-50 text-[#830AD1] border border-purple-100 p-2.5 rounded-xl text-[11px] font-bold mt-1 animate-pulse">
+                  <span className="w-4 h-4 border-2 border-t-transparent border-[#830AD1] rounded-full animate-spin shrink-0" />
+                  <span>Buscando e identificando conta via BrasilAPI / Serpro...</span>
+                </div>
+              )}
+
+              {!isSearchingCPF && serproLog && (
+                <div className="flex flex-col gap-1.5 mt-1.5">
+                  <div className="flex items-center justify-between bg-emerald-50 text-emerald-800 border border-emerald-100/40 p-2.5 rounded-xl text-[11px] font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Conta localizada e identificada automaticamente!</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'qrcode' && (
             /* QR Code Scanner Interface */
             <div className="flex flex-col gap-3.5">
               

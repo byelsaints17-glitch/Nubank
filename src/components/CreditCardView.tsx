@@ -49,33 +49,33 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
 
       <div className="p-5 flex-1 flex flex-col gap-6">
         
-        {/* The Sleek Nubank Purple Virtual Card */}
-        <div className="relative w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-[#830AD1] via-[#8B1AD6] to-[#7600C2] p-5 text-white shadow-lg overflow-hidden flex flex-col justify-between">
+        {/* The Sleek PGBANK White Platinum Card */}
+        <div className="relative w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 p-5 text-neutral-800 border border-neutral-300 shadow-sm overflow-hidden flex flex-col justify-between">
           {/* Logo brand and card type */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col">
-              <span className="font-display italic font-extrabold text-2xl tracking-tight text-white select-none">
-                nu <span className="text-xs font-normal not-italic opacity-80 ml-1">virtual</span>
+              <span className="font-display italic font-extrabold text-2xl tracking-tight text-neutral-900 select-none">
+                PG<span className="text-xs font-normal not-italic opacity-80 ml-1">virtual</span>
               </span>
-              <span className="text-[9px] font-extrabold tracking-wide text-emerald-300 mt-0.5 uppercase flex items-center gap-1">
+              <span className="text-[9px] font-extrabold tracking-wide text-emerald-600 mt-0.5 uppercase flex items-center gap-1">
                 ● CARTÃO ATIVO E CRÉDITO VÁLIDO
               </span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 px-2 py-0.5 rounded border border-white/10">
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-neutral-200 px-2 py-0.5 rounded border border-neutral-300 text-neutral-700">
               platinum
             </span>
           </div>
 
           {/* Masked Card Number */}
           <div className="flex flex-col gap-0.5 my-3">
-            <span className="text-sm font-semibold tracking-wide text-neutral-200">Número do cartão (Luhn Verificado)</span>
+            <span className="text-sm font-semibold tracking-wide text-neutral-500">Número do cartão (Luhn Verificado)</span>
             <div className="flex items-center gap-3">
-              <span className="text-lg font-bold font-mono tracking-wider">
+              <span className="text-lg font-bold font-mono tracking-wider text-neutral-800">
                 {formatCardNumber('5222890012345679')}
               </span>
               <button 
                 onClick={() => setShowSensitive(!showSensitive)}
-                className="p-1 rounded hover:bg-white/10 text-white/80 active:scale-95 transition-all"
+                className="p-1 rounded hover:bg-neutral-200 text-neutral-600 active:scale-95 transition-all"
               >
                 {showSensitive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -85,20 +85,20 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
           {/* Footer Details: Holder name, expiry, cvv, Mastercard brand */}
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-200">Titular</span>
-              <span className="text-sm font-bold tracking-wide font-display">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Titular</span>
+              <span className="text-sm font-bold tracking-wide font-display text-neutral-850">
                 {user.name.toUpperCase()}
               </span>
             </div>
 
             <div className="flex gap-4">
               <div className="flex flex-col items-center">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-200">Validade</span>
-                <span className="text-xs font-bold font-mono">10/29</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Validade</span>
+                <span className="text-xs font-bold font-mono text-neutral-800">10/29</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-200">CVV</span>
-                <span className="text-xs font-bold font-mono">{showSensitive ? '382' : '•••'}</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">CVV</span>
+                <span className="text-xs font-bold font-mono text-neutral-800">{showSensitive ? '382' : '•••'}</span>
               </div>
             </div>
 
@@ -118,7 +118,7 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
           </div>
           <div className="py-2.5 flex justify-between items-center text-sm">
             <span className="text-neutral-500 font-medium">Categoria</span>
-            <span className="font-bold text-purple-700">Mastercard Platinum</span>
+            <span className="font-bold text-neutral-800">Mastercard Platinum</span>
           </div>
           <div className="py-2.5 flex justify-between items-center text-sm">
             <span className="text-neutral-500 font-medium">Função</span>
@@ -136,7 +136,7 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
           <div className="flex justify-between items-center bg-neutral-50 p-3 rounded-xl border border-neutral-200/30">
             <div className="flex flex-col">
               <span className="text-[11px] text-neutral-500 font-bold">Fatura Atual</span>
-              <span className="text-sm font-bold text-[#009B9E]">{formatCurrency(user.creditCardInvoice)}</span>
+              <span className="text-sm font-bold text-neutral-900">{formatCurrency(user.creditCardInvoice)}</span>
             </div>
             <div className="h-6 w-px bg-neutral-200"></div>
             <div className="flex flex-col items-end">
@@ -154,7 +154,7 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
               step="100"
               value={user.creditCardLimit}
               onChange={(e) => onUpdateLimit(Number(e.target.value))}
-              className="w-full h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-[#830AD1]"
+              className="w-full h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-neutral-900"
             />
             <div className="flex justify-between text-[10px] text-neutral-400 font-bold mt-1">
               <span>R$ 500,00</span>
@@ -165,11 +165,11 @@ export default function CreditCardView({ user, onBack, onUpdateLimit }: CreditCa
 
         {/* Virtual Actions */}
         <div className="grid grid-cols-2 gap-3 mt-auto">
-          <button className="flex items-center justify-center gap-2 border-2 border-[#830AD1]/25 hover:border-[#830AD1]/55 text-[#830AD1] py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]">
+          <button className="flex items-center justify-center gap-2 border-2 border-neutral-200 hover:border-neutral-400 text-neutral-700 hover:bg-neutral-50 py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]">
             <Lock className="w-4 h-4" />
             Bloquear cartão
           </button>
-          <button className="flex items-center justify-center gap-2 border-2 border-[#830AD1]/25 hover:border-[#830AD1]/55 text-[#830AD1] py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]">
+          <button className="flex items-center justify-center gap-2 border-2 border-neutral-200 hover:border-neutral-400 text-neutral-700 hover:bg-neutral-50 py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]">
             <Settings className="w-4 h-4" />
             Configurar
           </button>

@@ -1,5 +1,5 @@
 {
-  "name": "Nubank",
+  "name": "PGBANK",
   "description": "Conta digital e gerador de comprovantes editáveis com alta fidelidade visual.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

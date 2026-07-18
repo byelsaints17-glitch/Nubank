@@ -225,7 +225,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
     } else {
       // Open eye with eyelashes
       return (
-        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="text-[#830AD1]">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="text-neutral-900">
           <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
@@ -239,8 +239,8 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
       <div className="flex-1 flex flex-col bg-white text-neutral-900 justify-between p-6 select-none animate-fade-in relative overflow-hidden min-h-[660px]">
         {/* Top bar with logo and country selector */}
         <div className="flex items-center justify-between w-full pt-4">
-          <div className="text-[#830AD1] font-extrabold text-3xl font-display">
-            nu
+          <div className="text-neutral-900 font-extrabold text-3xl font-display tracking-tight">
+            pg<span className="text-neutral-500 font-normal">bank</span>
           </div>
           <button className="flex items-center gap-1 bg-neutral-100 text-neutral-800 text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-neutral-200 transition-colors">
             Brasil <ChevronDown className="w-3.5 h-3.5 text-neutral-600" />
@@ -252,20 +252,20 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
           <div className="relative w-full max-w-[260px] h-full">
             {/* Bottom Card - Silver/Grey Business Card */}
             <div className="absolute top-[110px] left-[55px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-300 shadow-[2px_10px_20px_rgba(0,0,0,0.1)] border border-neutral-100/30 transform rotate-[18deg] translate-x-12 translate-y-6 flex flex-col justify-between p-3.5">
-              <span className="text-[#830AD1] font-extrabold text-lg font-display">nu</span>
-              <span className="text-[#830AD1] font-bold text-[10px] self-end uppercase tracking-wider font-display">business</span>
+              <span className="text-neutral-800 font-extrabold text-lg font-display">pg</span>
+              <span className="text-neutral-500 font-bold text-[10px] self-end uppercase tracking-wider font-display">business</span>
             </div>
 
-            {/* Middle Card - Medium Purple */}
-            <div className="absolute top-[50px] left-[25px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-[#8d3bc4] to-[#6d13a6] shadow-[2px_8px_18px_rgba(0,0,0,0.15)] transform rotate-[1deg] translate-x-4 translate-y-3 flex flex-col justify-between p-3.5">
-              <span className="text-white font-extrabold text-lg font-display">nu</span>
+            {/* Middle Card - Medium Grey */}
+            <div className="absolute top-[50px] left-[25px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-950 shadow-[2px_8px_18px_rgba(0,0,0,0.15)] transform rotate-[1deg] translate-x-4 translate-y-3 flex flex-col justify-between p-3.5">
+              <span className="text-white font-extrabold text-lg font-display">pg</span>
             </div>
 
-            {/* Top Card - Classic Vibrant Purple */}
-            <div className="absolute top-[0px] left-[0px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-[#830AD1] via-[#8B1AD6] to-[#7600C2] shadow-[4px_12px_24px_rgba(131,10,209,0.25)] border border-purple-400/25 transform rotate-[-16deg] -translate-x-2 -translate-y-2 flex flex-col justify-between p-3.5">
+            {/* Top Card - Classic Vibrant White/Silver Card */}
+            <div className="absolute top-[0px] left-[0px] w-[170px] h-[105px] rounded-xl bg-gradient-to-br from-white via-neutral-50 to-neutral-200 shadow-[4px_12px_24px_rgba(0,0,0,0.15)] border border-neutral-300 transform rotate-[-16deg] -translate-x-2 -translate-y-2 flex flex-col justify-between p-3.5">
               <div className="flex items-start justify-between">
-                <span className="text-white font-extrabold text-lg font-display">nu</span>
-                <span className="text-white/80 text-[7px] font-bold bg-white/10 px-1 rounded border border-white/10">Brasil</span>
+                <span className="text-neutral-800 font-extrabold text-lg font-display">pg</span>
+                <span className="text-neutral-600 text-[7px] font-bold bg-neutral-100 px-1 rounded border border-neutral-300">Brasil</span>
               </div>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
         <div className="w-full pb-4">
           <button
             onClick={() => setShowSplash(false)}
-            className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-4 rounded-full font-bold text-sm tracking-wide active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-[#830AD1]/15"
+            className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-4 rounded-full font-bold text-sm tracking-wide active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-neutral-900/15"
           >
             Começar
           </button>
@@ -295,15 +295,15 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
   if (isRecoveryMode) {
     return (
       <div className="flex-1 flex flex-col bg-white text-neutral-900 p-6 min-h-[660px] justify-between select-none animate-fade-in">
-        {/* Top row with Purple Brand Logo */}
+        {/* Top row with Brand Logo */}
         <div className="flex items-center justify-between w-full pt-4">
-          <div className="text-[#830AD1] font-extrabold text-3xl font-display">
-            nu
+          <div className="text-neutral-900 font-extrabold text-3xl font-display tracking-tight">
+            pg<span className="text-neutral-500 font-normal">bank</span>
           </div>
           <button 
             type="button"
             onClick={() => setIsRecoveryMode(false)}
-            className="text-xs text-[#830AD1] hover:text-[#7209B7] font-bold cursor-pointer"
+            className="text-xs text-neutral-900 hover:text-neutral-700 font-bold cursor-pointer"
           >
             Voltar ao login
           </button>
@@ -315,7 +315,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
             Esqueci minha senha
           </h2>
           <p className="text-xs text-neutral-500 mb-6 font-medium">
-            Recuperação de conta para <span className="font-bold text-[#830AD1]">{recoveryUser?.name || matchedUser?.name || 'Cliente'}</span>
+            Recuperação de conta para <span className="font-bold text-neutral-900">{recoveryUser?.name || matchedUser?.name || 'Cliente'}</span>
           </p>
 
           {recoveryStep === 'cpf' && (
@@ -333,7 +333,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setRecoveryCpf(formatCpf(e.target.value));
                     setRecoveryCpfError('');
                   }}
-                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-neutral-900 focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
                 />
                 {recoveryCpfError && (
                   <span className="text-xs text-rose-500 font-semibold">{recoveryCpfError}</span>
@@ -352,7 +352,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setRecoveryCpfError('Este CPF não foi encontrado em nosso banco de dados. Digite um CPF válido.');
                   }
                 }}
-                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Buscar Conta
               </button>
@@ -374,7 +374,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setRecoveryPhone(formatPhone(e.target.value));
                     setRecoveryPhoneError('');
                   }}
-                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-neutral-900 focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
                 />
                 {recoveryPhoneError && (
                   <span className="text-xs text-rose-500 font-semibold">{recoveryPhoneError}</span>
@@ -397,7 +397,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setRecoveryStep('code');
                   }, 1500);
                 }}
-                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Receber Código de Recuperação por SMS
               </button>
@@ -406,7 +406,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
 
           {recoveryStep === 'sending' && (
             <div className="flex flex-col items-center justify-center py-8 gap-4 animate-scale-up">
-              <div className="w-12 h-12 border-4 border-t-[#830AD1] border-neutral-100 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-t-neutral-900 border-neutral-100 rounded-full animate-spin"></div>
               <p className="text-sm font-bold text-neutral-600">Enviando código por SMS...</p>
             </div>
           )}
@@ -414,14 +414,14 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
           {recoveryStep === 'code' && (
             <div className="flex flex-col gap-6 animate-scale-up">
               {/* Test helper banner */}
-              <div className="bg-purple-50/80 border border-purple-100 p-4 rounded-2xl flex flex-col gap-1.5 text-xs">
-                <span className="font-bold text-[#830AD1] flex items-center gap-1">
+              <div className="bg-neutral-50 border border-neutral-200 p-4 rounded-2xl flex flex-col gap-1.5 text-xs">
+                <span className="font-bold text-neutral-900 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" /> SMS Recebido com Sucesso!
                 </span>
                 <p className="text-neutral-600 leading-normal">
                   Código de segurança de teste enviado para <span className="font-bold text-neutral-800">{recoveryPhone}</span>:
                 </p>
-                <span className="text-xl font-mono font-bold text-[#830AD1] bg-white border border-purple-200/50 rounded-lg py-1 px-4 self-start mt-0.5 shadow-sm">
+                <span className="text-xl font-mono font-bold text-neutral-900 bg-white border border-neutral-250 rounded-lg py-1 px-4 self-start mt-0.5 shadow-sm">
                   {sentCode}
                 </span>
               </div>
@@ -443,7 +443,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                       setRecoveryStep('display');
                     }
                   }}
-                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-xl font-bold font-mono tracking-[0.5em] text-center text-neutral-900 transition-all placeholder:text-neutral-300 placeholder:tracking-normal"
+                  className="w-full py-2 border-b-2 border-neutral-200 focus:border-neutral-900 focus:outline-none text-xl font-bold font-mono tracking-[0.5em] text-center text-neutral-900 transition-all placeholder:text-neutral-300 placeholder:tracking-normal"
                 />
                 {recoveryCodeError && (
                   <span className="text-xs text-rose-500 font-semibold">{recoveryCodeError}</span>
@@ -460,7 +460,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                       setRecoveryCodeError('Código incorreto! Digite o código de teste acima.');
                     }
                   }}
-                  className="flex-1 bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm tracking-wide cursor-pointer"
+                  className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-full font-bold text-sm tracking-wide cursor-pointer"
                 >
                   Confirmar Código
                 </button>
@@ -481,13 +481,13 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 <div className="border-t border-emerald-100/50 pt-3 flex flex-col gap-2.5 text-xs text-neutral-700">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-neutral-500">Senha do App:</span>
-                    <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
+                    <span className="font-bold text-neutral-900 bg-white border border-neutral-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
                       {recoveryUser?.password || matchedUser?.password}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-neutral-500">Senha do Pix (4 dígitos):</span>
-                    <span className="font-bold text-[#830AD1] bg-white border border-purple-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
+                    <span className="font-bold text-neutral-900 bg-white border border-neutral-200 px-2.5 py-1 rounded font-mono text-sm shadow-sm">
                       {recoveryUser?.transactionPassword || matchedUser?.transactionPassword}
                     </span>
                   </div>
@@ -504,7 +504,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   }
                   setIsRecoveryMode(false);
                 }}
-                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-3.5 rounded-full font-bold text-sm cursor-pointer shadow-md shadow-[#830AD1]/15"
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-3.5 rounded-full font-bold text-sm cursor-pointer shadow-md shadow-neutral-900/15"
               >
                 Voltar e Entrar
               </button>
@@ -520,10 +520,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
   return (
     <div className="flex-1 flex flex-col bg-white text-neutral-900 p-6 min-h-[660px] justify-between select-none animate-fade-in">
       
-      {/* Top row with Purple Brand Logo */}
+      {/* Top row with Brand Logo */}
       <div className="flex items-center justify-between w-full pt-4">
-        <div className="text-[#830AD1] font-extrabold text-3xl font-display">
-          nu
+        <div className="text-neutral-900 font-extrabold text-3xl font-display tracking-tight">
+          pg<span className="text-neutral-500 font-normal">bank</span>
         </div>
         <button 
           onClick={() => setShowSplash(true)}
@@ -553,7 +553,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={handleCpfChange}
-                className="w-full py-2 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
+                className="w-full py-2 border-b-2 border-neutral-200 focus:border-neutral-900 focus:outline-none text-base font-bold text-neutral-900 transition-all placeholder:text-neutral-300"
               />
               {!matchedUser && (
                 <div className="flex justify-end mt-1 text-[11px] font-medium">
@@ -569,7 +569,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                       setRecoveryPhoneError('');
                       setRecoveryCodeError('');
                     }}
-                    className="text-[#830AD1] hover:text-[#7209B7] font-bold hover:underline cursor-pointer"
+                    className="text-neutral-900 hover:text-neutral-700 font-bold hover:underline cursor-pointer"
                   >
                     Esqueci minha senha
                   </button>
@@ -581,13 +581,13 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
             {matchedUser && (
               <div className="flex flex-col gap-5 animate-scale-up border-t border-neutral-100 pt-5">
                 {/* Account info card */}
-                <div className="bg-[#830AD1]/5 border border-[#830AD1]/10 rounded-2xl p-4 flex flex-col gap-3">
+                <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-6.5 h-6.5 rounded-full bg-[#830AD1]/10 flex items-center justify-center text-[#830AD1]">
+                    <div className="w-6.5 h-6.5 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-800">
                       <UserCheck className="w-3.5 h-3.5" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-[#830AD1] uppercase tracking-wider">Identificado</span>
+                      <span className="text-[10px] font-bold text-neutral-800 uppercase tracking-wider">Identificado</span>
                       <span className="text-sm font-bold text-neutral-900 leading-tight">
                         {matchedUser.name}
                       </span>
@@ -604,10 +604,10 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-neutral-400 flex items-center gap-1">
-                        <Key className="w-3 h-3 text-[#830AD1]" />
+                        <Key className="w-3 h-3 text-neutral-850" />
                         Senha do App:
                       </span>
-                      <span className="font-bold text-[#830AD1] bg-[#830AD1]/10 px-2 py-0.5 rounded font-mono text-sm">
+                      <span className="font-bold text-neutral-900 bg-neutral-200 px-2 py-0.5 rounded font-mono text-sm">
                         {matchedUser.password}
                       </span>
                     </div>
@@ -635,7 +635,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                       placeholder="Senha do app"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full py-2 pr-12 border-b-2 border-neutral-200 focus:border-[#830AD1] focus:outline-none text-base font-bold font-mono text-neutral-900 tracking-wider transition-all placeholder:text-neutral-300 placeholder:font-sans placeholder:tracking-normal"
+                      className="w-full py-2 pr-12 border-b-2 border-neutral-200 focus:border-neutral-900 focus:outline-none text-base font-bold font-mono text-neutral-900 tracking-wider transition-all placeholder:text-neutral-300 placeholder:font-sans placeholder:tracking-normal"
                     />
                     <button
                       type="button"
@@ -661,7 +661,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                         setRecoveryPhoneError('');
                         setRecoveryCodeError('');
                       }}
-                      className="text-[#830AD1] hover:text-[#7209B7] font-bold hover:underline cursor-pointer"
+                      className="text-neutral-900 hover:text-neutral-700 font-bold hover:underline cursor-pointer"
                     >
                       Esqueci minha senha
                     </button>
@@ -697,7 +697,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
             {matchedUser && (
               <button
                 type="submit"
-                className="w-full bg-[#830AD1] hover:bg-[#7209B7] text-white py-4 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-4 rounded-full font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
               >
                 Continuar
                 <ArrowRight className="w-4 h-4 text-white" />
@@ -716,14 +716,14 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     setNewAccount(randomAcc);
                     setNewPassword(Math.floor(1000 + Math.random() * 9000).toString());
                     setNewTxPassword(Math.floor(1000 + Math.random() * 9000).toString());
-                    setNewBankName('Nu Pagamentos S.A.');
+                    setNewBankName('PG Pagamentos S.A.');
                     setNewCreditCardLimit('5000.00');
                     setNewCreditCardInvoice('0.00');
                     setNewBalance('1500.00');
                   }}
                   className="w-full bg-white hover:bg-neutral-50 border border-neutral-350 text-neutral-750 py-3.5 rounded-full font-bold text-xs tracking-wide active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <Plus className="w-4 h-4 text-[#830AD1]" />
+                  <Plus className="w-4 h-4 text-neutral-900" />
                   Criar Conta Corrente Grátis
                 </button>
               </div>
@@ -733,13 +733,13 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
           /* High-Fidelity Registration Form */
           <form onSubmit={handleRegister} className="flex flex-col gap-3.5 bg-neutral-50/50 p-4 border border-neutral-200/60 rounded-2xl animate-scale-up max-h-[500px] overflow-y-auto">
             <div className="flex items-center gap-2 border-b border-neutral-200/50 pb-2 mb-0.5 sticky top-0 bg-neutral-50/95 backdrop-blur-xs z-10">
-              <Landmark className="w-4 h-4 text-[#830AD1]" />
+              <Landmark className="w-4 h-4 text-neutral-900" />
               <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Criar Nova Conta Corrente</span>
             </div>
 
             {/* SEÇÃO 1: DADOS PESSOAIS */}
             <div className="flex flex-col gap-2">
-              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">1. Dados Pessoais</span>
+              <span className="text-[9px] font-bold text-neutral-700 uppercase tracking-wider">1. Dados Pessoais</span>
               <div className="grid grid-cols-1 gap-2.5">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-neutral-500 uppercase">Nome Completo</label>
@@ -749,7 +749,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     placeholder="Ex: Pedro Gabriel Silva"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold text-neutral-950"
                   />
                 </div>
 
@@ -762,7 +762,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     placeholder="000.000.000-00"
                     value={cpf}
                     onChange={(e) => setCpf(formatCpf(e.target.value))}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold font-mono text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold font-mono text-neutral-950"
                   />
                 </div>
               </div>
@@ -770,16 +770,16 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
 
             {/* SEÇÃO 2: DADOS BANCÁRIOS */}
             <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
-              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">2. Dados da Conta</span>
+              <span className="text-[9px] font-bold text-neutral-700 uppercase tracking-wider">2. Dados da Conta</span>
               
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold text-neutral-500 uppercase">Instituição Bancária</label>
                 <select
                   value={newBankName}
                   onChange={(e) => setNewBankName(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-800"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold text-neutral-800"
                 >
-                  <option value="Nu Pagamentos S.A.">Nu Pagamentos S.A. (Nubank)</option>
+                  <option value="PG Pagamentos S.A.">PG Pagamentos S.A. (PGBANK)</option>
                   <option value="Banco Bradesco S.A.">Banco Bradesco S.A.</option>
                   <option value="Itaú Unibanco S.A.">Itaú Unibanco S.A.</option>
                   <option value="Banco do Brasil S.A.">Banco do Brasil S.A.</option>
@@ -799,7 +799,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     required
                     value={newAgency}
                     onChange={(e) => setNewAgency(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-neutral-950 font-bold"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs text-neutral-950 font-bold"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -809,7 +809,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     required
                     value={newAccount}
                     onChange={(e) => setNewAccount(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-neutral-950 font-bold"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs text-neutral-950 font-bold"
                   />
                 </div>
               </div>
@@ -822,14 +822,14 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   step="0.01"
                   value={newBalance}
                   onChange={(e) => setNewBalance(e.target.value)}
-                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                  className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold text-neutral-950"
                 />
               </div>
             </div>
 
             {/* SEÇÃO 3: CARTÃO DE CRÉDITO */}
             <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
-              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">3. Cartão de Crédito</span>
+              <span className="text-[9px] font-bold text-neutral-700 uppercase tracking-wider">3. Cartão de Crédito</span>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-neutral-500 uppercase">Limite (R$)</label>
@@ -839,7 +839,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     step="0.01"
                     value={newCreditCardLimit}
                     onChange={(e) => setNewCreditCardLimit(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold text-neutral-950"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -850,7 +850,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     step="0.01"
                     value={newCreditCardInvoice}
                     onChange={(e) => setNewCreditCardInvoice(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-bold text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-bold text-neutral-950"
                   />
                 </div>
               </div>
@@ -858,7 +858,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
 
             {/* SEÇÃO 4: SEGURANÇA */}
             <div className="flex flex-col gap-2 border-t border-neutral-200/50 pt-2.5">
-              <span className="text-[9px] font-bold text-[#830AD1] uppercase tracking-wider">4. Segurança e Senhas</span>
+              <span className="text-[9px] font-bold text-neutral-700 uppercase tracking-wider">4. Segurança e Senhas</span>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-neutral-500 uppercase">Senha App (Login)</label>
@@ -869,7 +869,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     placeholder="Ex: 1105"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -881,7 +881,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     placeholder="Ex: 5424"
                     value={newTxPassword}
                     onChange={(e) => setNewTxPassword(e.target.value)}
-                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
+                    className="px-3 py-2 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs text-center font-bold font-mono text-neutral-950"
                   />
                 </div>
               </div>
@@ -897,7 +897,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
               </button>
               <button
                 type="submit"
-                className="py-3 bg-[#830AD1] hover:bg-[#7209B7] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#830AD1]/10 cursor-pointer"
+                className="py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-neutral-900/10 cursor-pointer"
               >
                 Salvar Conta Corrente
               </button>
@@ -912,15 +912,15 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
           <button
             type="button"
             onClick={() => setShowDemoAccounts(true)}
-            className="w-full py-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/50 rounded-xl text-[11px] font-bold text-neutral-500 hover:text-[#830AD1] transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+            className="w-full py-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/50 rounded-xl text-[11px] font-bold text-neutral-500 hover:text-neutral-900 transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#830AD1] animate-pulse" />
+            <Sparkles className="w-3.5 h-3.5 text-neutral-900 animate-pulse" />
             Contas de teste (Clique para preencher)
           </button>
         ) : (
           <div className="bg-neutral-50 border border-neutral-200/50 rounded-2xl p-4 animate-scale-up flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[#830AD1] uppercase tracking-wider flex items-center gap-1">
+              <span className="text-[10px] font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Contas para Simulação
               </span>
               <button
@@ -940,7 +940,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                   onClick={() => handleAutoFillCpf(u.cpf, u.password)}
                   className={`px-3 py-2 rounded-xl text-left border flex items-center justify-between text-xs transition-all cursor-pointer ${
                     cpf === u.cpf 
-                      ? 'bg-[#830AD1]/10 border-[#830AD1]/30 text-[#830AD1] font-bold' 
+                      ? 'bg-neutral-150 border-neutral-300 text-neutral-900 font-bold' 
                       : 'bg-white hover:bg-neutral-50 border-neutral-200/70 text-neutral-600'
                   }`}
                 >
@@ -948,7 +948,7 @@ export default function LoginView({ usersDatabase, onLoginSuccess, onRegisterUse
                     <span className="font-bold text-neutral-800 text-[11px]">{u.name.split(' ').slice(0, 2).join(' ')}</span>
                     <span className="text-[9px] text-neutral-400 font-mono">CPF: {u.cpf}</span>
                   </div>
-                  <div className="text-[9px] bg-purple-50 border border-purple-100/50 px-2 py-0.5 rounded font-mono text-[#830AD1] font-bold">
+                  <div className="text-[9px] bg-neutral-105 border border-neutral-200 px-2 py-0.5 rounded font-mono text-neutral-800 font-bold">
                     Senha: {u.password}
                   </div>
                 </button>

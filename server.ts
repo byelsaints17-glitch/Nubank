@@ -1011,9 +1011,14 @@ app.post("/api/comprovantes", async (req: Request, res: Response) => {
         
       if (error) {
         const isMissingTable = error.message?.includes("schema cache") || error.message?.includes("relation") || error.message?.includes("does not exist");
+        const isFetchError = error.message?.includes("fetch") || error.message?.includes("TypeError");
         if (isMissingTable) {
           tableStatus.comprovantes = false;
           addLog("INFO", "SYSTEM", "A tabela 'comprovantes' não existe no Supabase. Desativando consultas a ela e usando banco em memória local.");
+        } else if (isFetchError) {
+          supabase = null;
+          tableStatus.comprovantes = false;
+          addLog("INFO", "SYSTEM", "Falha de conexão com o Supabase. Desativando integração e usando banco em memória local.");
         } else {
           addLog("WARN", "SYSTEM", "Falha ao gravar comprovante no Supabase. Continuando em memória local.", { error: error.message });
         }
@@ -1021,7 +1026,13 @@ app.post("/api/comprovantes", async (req: Request, res: Response) => {
         addLog("INFO", "SYSTEM", "Comprovante gravado com sucesso no Supabase!");
       }
     } catch (supabaseErr: any) {
-      addLog("WARN", "SYSTEM", "Erro ao persistir no Supabase.", { error: supabaseErr.message });
+      if (supabaseErr.message?.includes("fetch") || supabaseErr.message?.includes("TypeError")) {
+        supabase = null;
+        tableStatus.comprovantes = false;
+        addLog("INFO", "SYSTEM", "Erro de rede no Supabase. Desativando integração.");
+      } else {
+        addLog("WARN", "SYSTEM", "Erro ao persistir no Supabase.", { error: supabaseErr.message });
+      }
     }
   }
 
@@ -1053,15 +1064,26 @@ app.delete("/api/comprovantes", async (req: Request, res: Response) => {
         
       if (error) {
         const isMissingTable = error.message?.includes("schema cache") || error.message?.includes("relation") || error.message?.includes("does not exist");
+        const isFetchError = error.message?.includes("fetch") || error.message?.includes("TypeError");
         if (isMissingTable) {
           tableStatus.comprovantes = false;
           addLog("INFO", "SYSTEM", "A tabela 'comprovantes' não existe no Supabase. Desativando consultas a ela e usando banco em memória local.");
+        } else if (isFetchError) {
+          supabase = null;
+          tableStatus.comprovantes = false;
+          addLog("INFO", "SYSTEM", "Falha de conexão com o Supabase. Desativando integração.");
         } else {
           addLog("WARN", "SYSTEM", "Falha ao deletar comprovantes do Supabase.", { error: error.message });
         }
       }
     } catch (e: any) {
-      addLog("WARN", "SYSTEM", "Erro ao deletar no Supabase.", { error: e.message });
+      if (e.message?.includes("fetch") || e.message?.includes("TypeError")) {
+        supabase = null;
+        tableStatus.comprovantes = false;
+        addLog("INFO", "SYSTEM", "Erro de rede no Supabase. Desativando integração.");
+      } else {
+        addLog("WARN", "SYSTEM", "Erro ao deletar no Supabase.", { error: e.message });
+      }
     }
   }
 
@@ -1146,8 +1168,13 @@ app.post("/api/users", async (req: Request, res: Response) => {
 
       if (error) {
         const isMissingTable = error.message?.includes("schema cache") || error.message?.includes("relation") || error.message?.includes("does not exist");
+        const isFetchError = error.message?.includes("fetch") || error.message?.includes("TypeError");
         if (isMissingTable) {
           tableStatus.bank_users = false;
+        } else if (isFetchError) {
+          supabase = null;
+          tableStatus.bank_users = false;
+          addLog("INFO", "SYSTEM", "Falha de conexão com o Supabase. Desativando integração e usando banco em memória local.");
         } else {
           addLog("WARN", "SYSTEM", "Erro ao salvar usuário no Supabase.", { error: error.message });
         }
@@ -1155,7 +1182,13 @@ app.post("/api/users", async (req: Request, res: Response) => {
         addLog("INFO", "SYSTEM", "Usuário salvo com sucesso no Supabase!");
       }
     } catch (err: any) {
-      addLog("WARN", "SYSTEM", "Erro ao persistir no Supabase.", { error: err.message });
+      if (err.message?.includes("fetch") || err.message?.includes("TypeError")) {
+        supabase = null;
+        tableStatus.bank_users = false;
+        addLog("INFO", "SYSTEM", "Erro de rede no Supabase. Desativando integração.");
+      } else {
+        addLog("WARN", "SYSTEM", "Erro ao persistir no Supabase.", { error: err.message });
+      }
     }
   }
 
@@ -1202,10 +1235,23 @@ app.put("/api/users/:cpf", async (req: Request, res: Response) => {
         });
 
       if (error) {
-        addLog("WARN", "SYSTEM", "Erro ao atualizar usuário no Supabase.", { error: error.message });
+        const isFetchError = error.message?.includes("fetch") || error.message?.includes("TypeError");
+        if (isFetchError) {
+          supabase = null;
+          tableStatus.bank_users = false;
+          addLog("INFO", "SYSTEM", "Falha de conexão com o Supabase. Desativando integração e usando banco em memória local.");
+        } else {
+          addLog("WARN", "SYSTEM", "Erro ao atualizar usuário no Supabase.", { error: error.message });
+        }
       }
     } catch (err: any) {
-      addLog("WARN", "SYSTEM", "Erro ao persistir atualização no Supabase.", { error: err.message });
+      if (err.message?.includes("fetch") || err.message?.includes("TypeError")) {
+        supabase = null;
+        tableStatus.bank_users = false;
+        addLog("INFO", "SYSTEM", "Erro de rede no Supabase. Desativando integração.");
+      } else {
+        addLog("WARN", "SYSTEM", "Erro ao persistir atualização no Supabase.", { error: err.message });
+      }
     }
   }
 
@@ -1431,9 +1477,14 @@ async function syncDatabaseWithSupabase() {
 
     addLog("INFO", "SYSTEM", "Sincronização com o Supabase finalizada com sucesso!");
   } catch (error: any) {
-    addLog("ERROR", "SYSTEM", "Falha ao sincronizar com o Supabase. Verifique se as credenciais e tabelas estão corretas.", {
+    addLog("ERROR", "SYSTEM", "Falha ao sincronizar com o Supabase. Desativando integração e usando banco em memória local.", {
       message: error.message
     });
+    supabase = null;
+    tableStatus.comprovantes = false;
+    tableStatus.authorized_cpfs = false;
+    tableStatus.serpro_database = false;
+    tableStatus.bank_users = false;
   }
 }
 

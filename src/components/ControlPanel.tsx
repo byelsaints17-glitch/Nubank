@@ -209,11 +209,11 @@ export default function ControlPanel({
       {/* Title */}
       <div className="flex items-center justify-between pb-4 border-b border-neutral-100 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#830AD1] flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white">
             <Sparkles className="w-4 h-4" />
           </div>
           <h2 className="text-lg font-bold text-neutral-900 tracking-tight font-display">
-            Painel Administrativo Nubank
+            Painel Administrativo PGBANK
           </h2>
         </div>
         <span className="text-[10px] uppercase font-bold text-neutral-400 bg-neutral-100 px-2 py-1 rounded-md">
@@ -227,12 +227,12 @@ export default function ControlPanel({
           onClick={() => setActivePanelTab('simulador')}
           className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activePanelTab === 'simulador'
-              ? 'bg-white text-[#830AD1] shadow-sm font-extrabold shadow-sm border border-neutral-200/20'
+              ? 'bg-white text-neutral-900 shadow-sm font-extrabold shadow-sm border border-neutral-200/20'
               : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50'
           }`}
         >
           <CreditCard className="w-3.5 h-3.5" />
-          Simulador Nubank
+          Simulador PGBANK
         </button>
         <button
           onClick={() => {
@@ -242,7 +242,7 @@ export default function ControlPanel({
           }}
           className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activePanelTab === 'operador'
-              ? 'bg-white text-[#830AD1] shadow-sm font-extrabold shadow-sm border border-neutral-200/20'
+              ? 'bg-white text-neutral-900 shadow-sm font-extrabold shadow-sm border border-neutral-200/20'
               : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50'
           }`}
         >
@@ -259,13 +259,13 @@ export default function ControlPanel({
             <div className="grid grid-cols-3 gap-2">
               <button 
                 onClick={() => onLoadPreset('receipt-example')}
-                className="bg-[#830AD1]/10 hover:bg-[#830AD1]/15 active:scale-95 text-[#830AD1] font-bold text-xs py-2 px-1 rounded-xl transition-all border border-[#830AD1]/10 cursor-pointer"
+                className="bg-neutral-100 hover:bg-neutral-200 active:scale-95 text-neutral-850 font-bold text-xs py-2 px-1 rounded-xl transition-all border border-neutral-200 cursor-pointer"
               >
                 Caso Pedro (Nu)
               </button>
               <button 
                 onClick={() => onLoadPreset('gabriela-example')}
-                className="bg-[#830AD1]/10 hover:bg-[#830AD1]/15 active:scale-95 text-[#830AD1] font-bold text-xs py-2 px-1 rounded-xl transition-all border border-[#830AD1]/10 cursor-pointer"
+                className="bg-neutral-100 hover:bg-neutral-200 active:scale-95 text-neutral-850 font-bold text-xs py-2 px-1 rounded-xl transition-all border border-neutral-200 cursor-pointer"
               >
                 Caso Gabriela (Bradesco)
               </button>
@@ -281,7 +281,7 @@ export default function ControlPanel({
           {/* Section 1: Paying User Settings */}
           <div className="flex flex-col gap-4 border border-neutral-200/50 p-4 rounded-2xl bg-neutral-50/50">
             <h3 className="font-bold text-neutral-900 flex items-center gap-2 font-display">
-              <User className="w-4 h-4 text-[#830AD1]" />
+              <User className="w-4 h-4 text-neutral-800" />
               1. Seus Dados (Pagador / Origem)
             </h3>
 
@@ -292,7 +292,7 @@ export default function ControlPanel({
                   type="text" 
                   value={user.name}
                   onChange={(e) => handleUserChange('name', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export default function ControlPanel({
                   type="text" 
                   value={user.cpf}
                   onChange={(e) => handleUserChange('cpf', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -312,7 +312,7 @@ export default function ControlPanel({
                   type="number" 
                   value={user.balance}
                   onChange={(e) => handleUserChange('balance', parseFloat(e.target.value) || 0)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-bold text-neutral-800"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-bold text-neutral-800"
                 />
               </div>
 
@@ -322,7 +322,7 @@ export default function ControlPanel({
                   type="text" 
                   value={user.accountNumber}
                   onChange={(e) => handleUserChange('accountNumber', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
             </div>
@@ -342,7 +342,7 @@ export default function ControlPanel({
                   type="text" 
                   value={recipient.name}
                   onChange={(e) => handleRecipientChange('name', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-bold"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-bold"
                 />
               </div>
 
@@ -352,7 +352,7 @@ export default function ControlPanel({
                   type="text" 
                   value={recipient.bankName}
                   onChange={(e) => handleRecipientChange('bankName', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -362,7 +362,7 @@ export default function ControlPanel({
                   type="text" 
                   value={recipient.agency}
                   onChange={(e) => handleRecipientChange('agency', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-mono"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-mono"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function ControlPanel({
                   type="text" 
                   value={recipient.accountNumber}
                   onChange={(e) => handleRecipientChange('accountNumber', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-mono"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-mono"
                 />
               </div>
             </div>
@@ -381,7 +381,7 @@ export default function ControlPanel({
           {/* Section 3: Transaction Details */}
           <div className="flex flex-col gap-4 border border-neutral-200/50 p-4 rounded-2xl bg-neutral-50/50">
             <h3 className="font-bold text-neutral-900 flex items-center gap-2 font-display">
-              <CreditCard className="w-4 h-4 text-purple-600" />
+              <CreditCard className="w-4 h-4 text-neutral-600" />
               3. Detalhes do Comprovante / Envio
             </h3>
 
@@ -392,7 +392,7 @@ export default function ControlPanel({
                   type="number" 
                   value={transaction.amount}
                   onChange={(e) => handleTxChange('amount', parseFloat(e.target.value) || 0)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-extrabold text-neutral-900"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-extrabold text-neutral-900"
                 />
               </div>
 
@@ -402,7 +402,7 @@ export default function ControlPanel({
                   type="text" 
                   value={transaction.date}
                   onChange={(e) => handleTxChange('date', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -412,7 +412,7 @@ export default function ControlPanel({
                   type="text" 
                   value={transaction.time}
                   onChange={(e) => handleTxChange('time', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -421,7 +421,7 @@ export default function ControlPanel({
                   <label className="text-xs text-neutral-500 font-semibold">ID da Transação / Autenticação</label>
                   <button 
                     onClick={generateRandomTxId}
-                    className="text-[11px] font-bold text-[#830AD1] hover:underline flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                    className="text-[11px] font-bold text-neutral-800 hover:underline flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Novo ID
@@ -431,7 +431,7 @@ export default function ControlPanel({
                   type="text" 
                   value={transaction.transactionId}
                   onChange={(e) => handleTxChange('transactionId', e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-mono text-xs font-bold text-neutral-700"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-mono text-xs font-bold text-neutral-700"
                 />
               </div>
             </div>
@@ -441,7 +441,7 @@ export default function ControlPanel({
           <div className="flex flex-col gap-4 border border-neutral-200/50 p-4 rounded-2xl bg-neutral-50/50 pb-6">
             <h3 className="font-bold text-neutral-900 flex items-center justify-between gap-2 font-display">
               <span className="flex items-center gap-2">
-                <Landmark className="w-4 h-4 text-purple-700" />
+                <Landmark className="w-4 h-4 text-neutral-700" />
                 4. Inserir no Extrato (Histórico)
               </span>
               <button 
@@ -462,7 +462,7 @@ export default function ControlPanel({
                   value={manualTitle}
                   onChange={(e) => setManualTitle(e.target.value)}
                   placeholder="e.g. Pix enviado, Transferência recebida"
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -473,7 +473,7 @@ export default function ControlPanel({
                   value={manualOpponent}
                   onChange={(e) => setManualOpponent(e.target.value)}
                   placeholder="e.g. Matheus, Nathan"
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none"
                 />
               </div>
 
@@ -483,7 +483,7 @@ export default function ControlPanel({
                   type="number" 
                   value={manualAmount}
                   onChange={(e) => setManualAmount(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none font-bold text-neutral-800"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none font-bold text-neutral-800"
                 />
               </div>
 
@@ -523,7 +523,7 @@ export default function ControlPanel({
 
               <button 
                 onClick={submitManualStatement}
-                className="w-full md:col-span-2 bg-[#830AD1] hover:bg-[#7209B7] text-white py-2.5 rounded-xl font-bold font-sans text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+                className="w-full md:col-span-2 bg-neutral-900 hover:bg-neutral-850 text-white py-2.5 rounded-xl font-bold font-sans text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Adicionar Transação ao Extrato
@@ -559,7 +559,7 @@ export default function ControlPanel({
                   value={newCpf}
                   onChange={(e) => setNewCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="Ex: 11054254524"
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-mono font-bold"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-mono font-bold"
                   required
                 />
               </div>
@@ -571,13 +571,13 @@ export default function ControlPanel({
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Nome cadastral Receita"
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs"
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs"
                 />
               </div>
 
               <button 
                 type="submit"
-                className="w-full md:col-span-2 bg-[#830AD1] hover:bg-[#7209B7] text-white py-2 rounded-xl font-bold font-sans text-xs flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-[0.98]"
+                className="w-full md:col-span-2 bg-neutral-900 hover:bg-neutral-850 text-white py-2 rounded-xl font-bold font-sans text-xs flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-[0.98]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Autorizar CPF no Servidor
@@ -613,7 +613,7 @@ export default function ControlPanel({
           {/* Section 2: BrasilAPI Bank Lookup Test */}
           <div className="flex flex-col gap-4 border border-neutral-200/50 p-4 rounded-2xl bg-neutral-50/50">
             <h3 className="font-bold text-neutral-900 flex items-center gap-2 font-display">
-              <Landmark className="w-4 h-4 text-purple-600" />
+              <Landmark className="w-4 h-4 text-neutral-600" />
               BrasilAPI - Teste de Banco
             </h3>
 
@@ -627,12 +627,12 @@ export default function ControlPanel({
                 value={bankCodeSearch}
                 onChange={(e) => setBankCodeSearch(e.target.value)}
                 placeholder="Ex: 260 ou 18236120"
-                className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-[#830AD1] focus:outline-none text-xs font-mono font-bold flex-1"
+                className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl focus:border-neutral-900 focus:outline-none text-xs font-mono font-bold flex-1"
                 required
               />
               <button 
                 type="submit"
-                className="bg-[#830AD1] hover:bg-[#7209B7] text-white p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                className="bg-neutral-900 hover:bg-neutral-850 text-white p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -668,12 +668,12 @@ export default function ControlPanel({
           <div className="flex flex-col gap-4 border border-neutral-200/50 p-4 rounded-2xl bg-neutral-900 text-neutral-200 pb-5 shrink-0">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-white flex items-center gap-1.5 font-mono text-xs">
-                <Terminal className="w-4 h-4 text-[#830AD1]" />
+                <Terminal className="w-4 h-4 text-neutral-400" />
                 EXPRESS_SERVER_AUDIT_LOGS
               </h3>
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                <span className="text-[9px] text-[#830AD1] font-mono font-bold">STREAM_LIVE</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse"></span>
+                <span className="text-[9px] text-neutral-400 font-mono font-bold">STREAM_LIVE</span>
               </div>
             </div>
 
@@ -688,7 +688,7 @@ export default function ControlPanel({
                     ERROR: 'text-red-400'
                   };
                   const catColors = {
-                    OAUTH2: 'text-purple-400',
+                    OAUTH2: 'text-neutral-400',
                     SERPRO: 'text-cyan-400',
                     BRASIL_API: 'text-blue-400',
                     SYSTEM: 'text-neutral-400'
